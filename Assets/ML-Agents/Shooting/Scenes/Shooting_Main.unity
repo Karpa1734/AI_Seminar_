@@ -506,15 +506,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bulletPrefab: {fileID: 4103404898756645513, guid: d293e35b4b528ea4e9040ae31921c474, type: 3}
-  interval: 0.5
+  interval: 2
   speedData:
-    default_: 3
-    accuracy_: 0.5
-    max_: 8
+    default_: 2
+    accuracy_: 0
+    max_: 0
   angleData:
     default_: 270
     accuracy_: 0
     max_: 0
+  player: {fileID: 1809622912}
 --- !u!1 &1809622910
 GameObject:
   m_ObjectHideFlags: 0
@@ -624,7 +625,18 @@ MonoBehaviour:
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
   speed: 5
-  observeBulletCount: 3
+  observeBulletCount: 5
+  predictionTime: 0.5
+  safeDistance: 1
+  futureRewardScale: 0.001
+  survivalReward: 0.005
+  hitPenalty: -1
+  minX: -8.5
+  maxX: 8.5
+  minY: -4.5
+  maxY: 4.5
+  normalSpeed: 5
+  slowSpeed: 2
 --- !u!114 &1809622914
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -638,10 +650,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 14
+    VectorObservationSize: 32
     NumStackedVectorObservations: 1
     m_ActionSpec:
-      m_NumContinuousActions: 2
+      m_NumContinuousActions: 3
       BranchSizes: 01000000
     VectorActionSize: 
     VectorActionDescriptions: []
@@ -695,7 +707,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a5c9d521e5ef4759a8246a07d52221e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DecisionPeriod: 5
+  DecisionPeriod: 4
   DecisionStep: 0
   TakeActionsBetweenDecisions: 1
 --- !u!1 &2146525865
