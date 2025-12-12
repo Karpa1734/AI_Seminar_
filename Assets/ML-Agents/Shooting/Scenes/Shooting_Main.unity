@@ -624,7 +624,8 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
-  speed: 5
+  normalSpeed: 5
+  slowSpeed: 2
   observeBulletCount: 5
   predictionTime: 0.5
   safeDistance: 1
@@ -635,8 +636,6 @@ MonoBehaviour:
   maxX: 8.5
   minY: -4.5
   maxY: 4.5
-  normalSpeed: 5
-  slowSpeed: 2
 --- !u!114 &1809622914
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -659,7 +658,7 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 0}
+  m_Model: {fileID: 5022602860645237092, guid: 5df986f786ecc1245aca8c2819a26a60, type: 3}
   m_InferenceDevice: 0
   m_BehaviorType: 0
   m_BehaviorName: DodgerAgent
