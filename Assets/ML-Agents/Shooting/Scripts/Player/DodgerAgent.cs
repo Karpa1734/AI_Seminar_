@@ -109,13 +109,13 @@ public class DodgerAgent : Agent
 
         // ------------- 壁ペナルティ（弱め） -------------
         float wallPenalty = Mathf.Abs(transform.localPosition.y) / maxY;
-        AddReward(-wallPenalty * 0.005f);  // ← 0.02 → 0.005 に弱く
+        AddReward(-wallPenalty * 0.5f);  // ← 0.02 → 0.005 に弱く
 
         // ------------- 切り返しボーナス（速度ではなく方向反転で判定） -------------
         Vector2 vel = rb.linearVelocity;
         if (Mathf.Abs(prevVel.y) > 0.05f && prevVel.y * vel.y < 0)
         {
-            AddReward(0.1f);  // 強めに
+            AddReward(0.001f);  // 強めに
         }
         prevVel = vel;
 
