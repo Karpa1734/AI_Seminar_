@@ -506,16 +506,60 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bulletPrefab: {fileID: 4103404898756645513, guid: d293e35b4b528ea4e9040ae31921c474, type: 3}
-  interval: 2
-  speedData:
-    default_: 2
-    accuracy_: 0
-    max_: 0
-  angleData:
-    default_: 270
-    accuracy_: 0
-    max_: 0
   player: {fileID: 1809622912}
+  phases:
+  - phaseName: Simple
+    duration: 1200
+    shotData:
+      pattern: 1
+      angleType: 1
+      interval: 30
+      fixedAngle: 0
+      nWayCount: 5
+      nWaySpread: 60
+      RoundCount: 0
+      speedData:
+        default_: 2
+        accuracy_: 1
+        max_: 6
+      angleData:
+        default_: 0
+        accuracy_: 0
+        max_: 0
+    moveData:
+      shouldMove: 1
+      minMoveDistance: 2
+      maxMoveDistance: 6
+      moveInterval: 180
+      moveDuration: 60
+      xBoundOffset: 1
+      yBoundOffset: 1
+  - phaseName: Simple
+    duration: 1200
+    shotData:
+      pattern: 2
+      angleType: 2
+      interval: 15
+      fixedAngle: 0
+      nWayCount: 0
+      nWaySpread: 0
+      RoundCount: 18
+      speedData:
+        default_: 2
+        accuracy_: 1
+        max_: 6
+      angleData:
+        default_: 0
+        accuracy_: 0
+        max_: 0
+    moveData:
+      shouldMove: 0
+      minMoveDistance: 0
+      maxMoveDistance: 0
+      moveInterval: 120
+      moveDuration: 30
+      xBoundOffset: 0
+      yBoundOffset: 0
 --- !u!1 &1809622910
 GameObject:
   m_ObjectHideFlags: 0
@@ -658,7 +702,7 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 5022602860645237092, guid: 5df986f786ecc1245aca8c2819a26a60, type: 3}
+  m_Model: {fileID: 0}
   m_InferenceDevice: 0
   m_BehaviorType: 0
   m_BehaviorName: DodgerAgent
