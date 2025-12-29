@@ -11,6 +11,8 @@ TagManager:
   - Enemy_Bullet
   - Player_Bullet
   - Player_HitBox
+  - Player1
+  - Player2
   layers:
   - Default
   - TransparentFX
@@ -18,10 +20,10 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
-  - 
-  - 
+  - Player1
+  - Player1_Bullet
+  - Player2
+  - Player2_Bullet
   - 
   - 
   - 
