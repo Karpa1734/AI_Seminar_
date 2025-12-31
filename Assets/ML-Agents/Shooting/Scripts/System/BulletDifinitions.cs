@@ -1,5 +1,8 @@
 using UnityEngine;
 
+// --- 追加：予兆エフェクトの色定義 ---
+public enum DelayColor { RED, ORANGE, YELLOW, GREEN, AQUA, BLUE, PURPLE, WHITE }
+
 // --- 数値の変化を扱うクラス ---
 [System.Serializable]
 public class spanData
@@ -16,7 +19,15 @@ public class spanData
         max_ = max;
     }
 }
+[System.Serializable]
+public class NWayExpandSettings
+{
+    [Tooltip("連射の2発目以降、1回ごとに増える弾数")]
+    public int countAdd = 0;
 
+    [Tooltip("連射の2発目以降、1回ごとに広がる扇の角度")]
+    public float spreadAdd = 0f;
+}
 // --- 射撃パターン（見た目＋挙動） ---
 [System.Serializable]
 public class ShotData
@@ -35,9 +46,17 @@ public class ShotData
     public float nWaySpread = 30f;
     public int RoundCount = 36;
 
+    [Header("NWay Expansion (Optional)")]
+    // NWayの時だけ使う設定としてグループ化
+    public NWayExpandSettings nWayExpand;
+
     [Header("Movement Settings")]
     public spanData speedData = new spanData(3f, 0.5f, 8f);
     public spanData angleAccData = new spanData(0f, 0f, 0f);
+
+    [Header("Delay Settings")]
+    [Tooltip("発射までの遅延フレーム数（0で即時発射）")]
+    public int launchDelay = 0;
 }
 
 // --- 技のスロット（ショットデータ＋リキャスト時間） ---

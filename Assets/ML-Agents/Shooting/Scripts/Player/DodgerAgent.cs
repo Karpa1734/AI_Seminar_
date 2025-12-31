@@ -144,7 +144,7 @@ public class DodgerAgent : Agent
             sensor.AddObservation(Vector2.zero);
         }
 
-        // 4. 弾の観測（自分に当たるものだけ）
+        // 4. 弾の観測（10発分、常に60個のデータを送るように固定）
         string targetLayer = (spawner.myTeam == BulletSpawner.TeamSide.Player1) ? "Player2_Bullet" : "Player1_Bullet";
         var bullets = GameObject.FindGameObjectsWithTag("Enemy_Bullet")
             .Where(b => b.layer == LayerMask.NameToLayer(targetLayer))
@@ -155,27 +155,31 @@ public class DodgerAgent : Agent
         foreach (var b in bullets)
         {
             Vector2 relativePos = (Vector2)(b.transform.position - transform.position);
-            sensor.AddObservation(relativePos / maxDetectionRadius);
+            sensor.AddObservation(relativePos / maxDetectionRadius); // +2
+
             var eb = b.GetComponent<EnemyBullet>();
             if (eb != null)
             {
-                sensor.AddObservation(eb.Velocity / 10f);
-                sensor.AddObservation(eb.Acceleration / 5f);
+                // Vector3のままだと3個送られるため、(Vector2)でキャストして2個に固定する
+                sensor.AddObservation((Vector2)eb.Velocity / 10f);     // +2
+                sensor.AddObservation((Vector2)eb.Acceleration / 5f); // +2
             }
             else
             {
-                sensor.AddObservation(Vector2.zero);
-                sensor.AddObservation(Vector2.zero);
+                sensor.AddObservation(Vector2.zero); // +2
+                sensor.AddObservation(Vector2.zero); // +2
             }
         }
 
+        // 足りない分を埋める（ここも常に合計6個になるようにする）
         int missingBullets = observeBulletCount - bullets.Count;
         for (int i = 0; i < missingBullets; i++)
         {
-            sensor.AddObservation(Vector2.zero);
-            sensor.AddObservation(Vector2.zero);
-            sensor.AddObservation(Vector2.zero);
+            sensor.AddObservation(Vector2.zero); // 相対位置分 (+2)
+            sensor.AddObservation(Vector2.zero); // 速度分 (+2)
+            sensor.AddObservation(Vector2.zero); // 加速度分 (+2)
         }
+
     }
 
     public override void OnActionReceived(ActionBuffers actions)

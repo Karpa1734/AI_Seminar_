@@ -1,11 +1,17 @@
 using UnityEngine;
 using Unity.MLAgents;
+using System.Collections;
 
 public class BulletSpawner : MonoBehaviour
 {
     public enum TeamSide { Player1, Player2 }
     public TeamSide myTeam;
     public CharacterData characterProfile;
+    [Header("Effect Settings")]
+    public GameObject delayEffectPrefab;
+
+    [Tooltip("RED, ORANGE, YELLOW, GREEN, AQUA, BLUE, PURPLE, WHITE の順で登録")]
+    public Sprite[] delaySprites = new Sprite[8]; // ★ 追加：8枚のスプライトを登録
 
     private AttackPattern[] attackPatterns = new AttackPattern[4];
     private float[] recastTimers = new float[4];
@@ -21,6 +27,7 @@ public class BulletSpawner : MonoBehaviour
     private static int largeCounter = 1000;
     private static int middleCounter = 6000;
     private static int smallCounter = 11000;
+
 
     private void Start()
     {
@@ -106,7 +113,12 @@ public class BulletSpawner : MonoBehaviour
 
     private void Fire(int index)
     {
-        ExecuteShot(attackPatterns[index].shotData);
+        // 現在のステップ（0, 1, 2...）を計算
+        int currentStep = attackPatterns[index].burstCount - burstRemain[index];
+
+        // stepを引数として渡す
+        ExecuteShot(attackPatterns[index].shotData, currentStep);
+
         burstRemain[index]--;
 
         if (burstRemain[index] > 0)
@@ -127,23 +139,70 @@ public class BulletSpawner : MonoBehaviour
     }
 
     // --- 以下、既存の ExecuteShot, SpawnFromPool, GetNextOrder 等はそのまま ---
-    private void ExecuteShot(ShotData data)
+    private void ExecuteShot(ShotData data, int step)
     {
         if (data == null || data.bulletType == null) return;
+
         switch (data.pattern)
         {
-            case ShotData.PatternType.Single: ShootSingle(data); break;
-            case ShotData.PatternType.NWay: ShootNWay(data); break;
-            case ShotData.PatternType.AllDirections: ShootAllDirections(data); break;
+            case ShotData.PatternType.Single:
+                ShootSingle(data); // stepは無視される
+                break;
+
+            case ShotData.PatternType.NWay:
+                // stepを考慮したNWay発射
+                ShootExpandingNWay(data, step);
+                break;
+
+            case ShotData.PatternType.AllDirections:
+                ShootAllDirections(data); // stepは無視される
+                break;
         }
     }
+
+    private void ShootExpandingNWay(ShotData data, int step)
+    {
+        int actualCount = data.nWayCount;
+        float actualSpread = data.nWaySpread;
+
+        if (data.nWayExpand != null)
+        {
+            actualCount += data.nWayExpand.countAdd * step;
+            actualSpread += data.nWayExpand.spreadAdd * step;
+        }
+
+        float baseAngle = CalculateAngle(data);
+        float startAngle = baseAngle - (actualSpread / 2f);
+        float angleStep = (actualCount > 1) ? actualSpread / (actualCount - 1) : 0;
+
+        for (int i = 0; i < actualCount; i++)
+        {
+            // ★第5引数に data.launchDelay を追加
+            SpawnFromPool(data.bulletType, startAngle + (angleStep * i), data.speedData, data.angleAccData, data.launchDelay);
+        }
+    }
+
     private void ShootSingle(ShotData data)
     {
-
         float angle = CalculateAngle(data);
-        SpawnFromPool(data.bulletType, angle, data.speedData, data.angleAccData);
+        // ★第5引数に data.launchDelay を追加
+        SpawnFromPool(data.bulletType, angle, data.speedData, data.angleAccData, data.launchDelay);
+    }
 
+    private void ShootAllDirections(ShotData data)
+    {
+        float baseAngle = CalculateAngle(data);
+        float step = 360f / data.RoundCount;
 
+        // 【偶数弾の自機外しロジック】
+        // 弾数が偶数の場合、正面に弾が来ないように角度をステップの半分だけずらす
+        float offset = (data.RoundCount % 2 == 0) ? step / 2f : 0f;
+
+        for (int i = 0; i < data.RoundCount; i++)
+        {
+            // baseAngle（基準）に現在のステップとオフセットを足す
+            SpawnFromPool(data.bulletType, baseAngle + (step * i) + offset, data.speedData, data.angleAccData, data.launchDelay);
+        }
     }
 
     private void ShootNWay(ShotData data)
@@ -154,21 +213,65 @@ public class BulletSpawner : MonoBehaviour
 
         for (int i = 0; i < data.nWayCount; i++)
         {
-            SpawnFromPool(data.bulletType, startAngle + (step * i), data.speedData, data.angleAccData);
+            // ★第5引数に data.launchDelay を追加
+            SpawnFromPool(data.bulletType, startAngle + (step * i), data.speedData, data.angleAccData, data.launchDelay);
         }
     }
 
-    private void ShootAllDirections(ShotData data)
-    {
-        float step = 360f / data.RoundCount;
-        for (int i = 0; i < data.RoundCount; i++)
-        {
-            SpawnFromPool(data.bulletType, step * i, data.speedData, data.angleAccData);
-        }
-    }
-    private void SpawnFromPool(BulletData bData, float angle, spanData sData, spanData aData)
+    // BulletSpawner.cs の SpawnFromPool 内にログを追加
+    private void SpawnFromPool(BulletData bData, float angle, spanData sData, spanData aData, int delayFrames)
     {
         if (BulletPool.Instance == null) return;
+
+        // ↓ この一行を追加して、コンソール（Console）を確認してください
+        Debug.Log($"発射を試行中: {bData.bulletName}, 遅延フレーム: {delayFrames}");
+
+        if (delayFrames <= 0)
+        {
+            ExecuteActualSpawn(bData, angle, sData, aData);
+        }
+        else
+        {
+            StartCoroutine(DelayedSpawnRoutine(bData, angle, sData, aData, delayFrames));
+        }
+    }
+    // BulletSpawner.cs の DelayedSpawnRoutine 内を修正
+
+    private IEnumerator DelayedSpawnRoutine(BulletData bData, float angle, spanData sData, spanData aData, int delayFrames)
+    {
+        if (delayEffectPrefab != null)
+        {
+            GameObject fxObj = Instantiate(delayEffectPrefab, transform.position, Quaternion.identity, transform);
+            var fx = fxObj.GetComponent<LaunchDelayEffect>();
+
+            if (fx != null)
+            {
+                // 配列の範囲チェックを追加してクラッシュを防ぐ
+                int colorIndex = (int)bData.delayColor;
+                Sprite targetSprite = (delaySprites != null && colorIndex < delaySprites.Length)
+                                      ? delaySprites[colorIndex] : null;
+
+                if (targetSprite == null)
+                {
+                    Debug.LogWarning($"{bData.delayColor} のスプライトが登録されていません！");
+                }
+
+                float baseScale = (bData.sizeCategory == BulletData.SizeCategory.Small) ? 0.6f :
+                                  (bData.sizeCategory == BulletData.SizeCategory.Large) ? 1.8f : 1.0f;
+                float finalMaxScale = baseScale * bData.localScale.x;
+
+                int order = GetNextOrder(bData.sizeCategory);
+                fx.Setup(targetSprite, delayFrames, order, finalMaxScale);
+            }
+        }
+
+        // 待機処理
+        for (int i = 0; i < delayFrames; i++) yield return null;
+        ExecuteActualSpawn(bData, angle, sData, aData);
+    }
+
+    private void ExecuteActualSpawn(BulletData bData, float angle, spanData sData, spanData aData)
+    {
         GameObject b = BulletPool.Instance.Get();
         b.transform.position = transform.position;
         b.layer = LayerMask.NameToLayer(myTeam.ToString() + "_Bullet");
@@ -198,14 +301,30 @@ public class BulletSpawner : MonoBehaviour
         }
     }
 
+    // BulletSpawner.cs の CalculateAngle メソッドを更新
+
     private float CalculateAngle(ShotData data)
     {
-        if (data.angleType == ShotData.AngleType.AimAtPlayer && target != null)
+        switch (data.angleType)
         {
-            Vector2 dir = target.position - transform.position;
-            return Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+            case ShotData.AngleType.AimAtPlayer:
+                if (target != null)
+                {
+                    // ターゲット（自機）への方向ベクトルを計算し、角度に変換
+                    Vector2 dir = target.position - transform.position;
+                    return Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+                }
+                return data.fixedAngle; // ターゲット不在時のフォールバック
+
+            case ShotData.AngleType.Random:
+                // 1.0f から 360.0f までの乱数を返す
+                return Random.Range(1f, 360f);
+
+            case ShotData.AngleType.Fixed:
+            default:
+                // インスペクターで設定した固定角度を返す
+                return data.fixedAngle;
         }
-        return data.fixedAngle;
     }
 
     public float GetRecastProgress(int index)

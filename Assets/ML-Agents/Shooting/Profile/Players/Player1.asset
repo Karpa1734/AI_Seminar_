@@ -23,16 +23,20 @@ MonoBehaviour:
       angleType: 1
       fixedAngle: 0
       nWayCount: 3
-      nWaySpread: 60
+      nWaySpread: 30
       RoundCount: 0
+      nWayExpand:
+        countAdd: 1
+        spreadAdd: 10
       speedData:
-        default_: 3
-        accuracy_: 0.5
+        default_: 4
+        accuracy_: 0
         max_: 8
       angleAccData:
         default_: 0
         accuracy_: 0
         max_: 0
+      launchDelay: 120
     recastTime: 2
     burstCount: 5
     burstInterval: 0.2
@@ -45,6 +49,9 @@ MonoBehaviour:
       nWayCount: 0
       nWaySpread: 0
       RoundCount: 18
+      nWayExpand:
+        countAdd: 0
+        spreadAdd: 0
       speedData:
         default_: 3
         accuracy_: 0.5
@@ -53,6 +60,7 @@ MonoBehaviour:
         default_: 0
         accuracy_: 0
         max_: 0
+      launchDelay: 300
     recastTime: 1
     burstCount: 1
     burstInterval: 0
@@ -65,6 +73,9 @@ MonoBehaviour:
       nWayCount: 3
       nWaySpread: 30
       RoundCount: 36
+      nWayExpand:
+        countAdd: 0
+        spreadAdd: 0
       speedData:
         default_: 3
         accuracy_: 0.5
@@ -73,6 +84,7 @@ MonoBehaviour:
         default_: 0
         accuracy_: 0
         max_: 0
+      launchDelay: 0
     recastTime: 0
     burstCount: 1
     burstInterval: 0.1
@@ -85,6 +97,9 @@ MonoBehaviour:
       nWayCount: 3
       nWaySpread: 30
       RoundCount: 36
+      nWayExpand:
+        countAdd: 0
+        spreadAdd: 0
       speedData:
         default_: 3
         accuracy_: 0.5
@@ -93,6 +108,7 @@ MonoBehaviour:
         default_: 0
         accuracy_: 0
         max_: 0
+      launchDelay: 0
     recastTime: 0
     burstCount: 1
     burstInterval: 0.1

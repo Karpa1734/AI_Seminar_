@@ -15,6 +15,17 @@ MonoBehaviour:
   bulletName: Knife_Yellow
   bulletSprite: {fileID: -6769785916006487538, guid: f34c858404237d04d9bdbb753f1c7346, type: 3}
   sizeCategory: 2
-  colliderRadius: 0.3
+  delayColor: 2
+  colliderRadius: 0.1
   colliderOffset: {x: 0, y: 0}
   localScale: {x: 1, y: 1, z: 1}
+  changeSteps:
+  - triggerTime: 0
+    newSprite: {fileID: 0}
+    newColliderRadius: 0
+    newScale: {x: 0, y: 0, z: 0}
+    changeTrajectory: 0
+    newSpeed: 0
+    newSpeedAcc: 0
+    newAngleOffset: 0
+    isAbsoluteAngle: 0

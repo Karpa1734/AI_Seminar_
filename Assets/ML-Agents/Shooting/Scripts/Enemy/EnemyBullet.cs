@@ -25,6 +25,9 @@ public class EnemyBullet : MonoBehaviour
     private Vector3 velocity = Vector3.zero;
     private Vector3 lastVelocity = Vector3.zero;
     private Vector3 _calculatedAcceleration;
+    private BulletData originData;
+    private int nextStepIndex = 0;
+    private int framesSinceSpawn = 0; // float timeSinceSpawn から変更
 
     // Expose for Agent observation
     public Vector3 Velocity => velocity;
@@ -38,6 +41,10 @@ public class EnemyBullet : MonoBehaviour
 
     public void Setup(BulletData data, Vector3 pos, float initSpeed, float spAcc, float spMax, float initAngle, float anAcc, float anMax, int orderInLayer)
     {
+        originData = data; // データを保持
+        nextStepIndex = 0;
+        framesSinceSpawn = 0;
+
         if (data != null && spriteRenderer != null)
         {
             spriteRenderer.sprite = data.bulletSprite;
@@ -70,6 +77,18 @@ public class EnemyBullet : MonoBehaviour
 
     void Update()
     {
+        framesSinceSpawn++; 
+
+        // 変化ステップのチェック
+        if (originData != null && nextStepIndex < originData.changeSteps.Count)
+        {
+            if (framesSinceSpawn >= originData.changeSteps[nextStepIndex].triggerFrame)
+            {
+                ApplyNextStep(originData.changeSteps[nextStepIndex]);
+                nextStepIndex++;
+            }
+        }
+
         lastVelocity = velocity;
 
         // --- 速度の更新 ---
@@ -100,13 +119,14 @@ public class EnemyBullet : MonoBehaviour
         // --- 速度ベクトルと回転の同時更新 ---
         UpdateVelocityAndRotation();
 
-        // 移動の適用
         transform.position += velocity * Time.deltaTime;
 
         // AI用の加速度計算
         _calculatedAcceleration = (velocity - lastVelocity) / Time.deltaTime;
 
         CheckOutOfBounds();
+
+
     }
 
     private void UpdateVelocityAndRotation()
@@ -122,7 +142,27 @@ public class EnemyBullet : MonoBehaviour
             transform.rotation = Quaternion.Euler(0, 0, currentAngle - 90f);
         }
     }
+    private void ApplyNextStep(BulletChangeStep step)
+    {
+        // 画像の変更
+        if (step.newSprite != null) spriteRenderer.sprite = step.newSprite;
 
+        // 当たり判定とスケールの変更
+        if (step.newColliderRadius > 0) circleCollider.radius = step.newColliderRadius;
+        if (step.newScale != Vector3.zero) transform.localScale = step.newScale;
+
+        // 軌道の変更
+        if (step.changeTrajectory)
+        {
+            currentSpeed = step.newSpeed;
+            speedAcc = step.newSpeedAcc;
+
+            if (step.isAbsoluteAngle)
+                currentAngle = step.newAngleOffset;
+            else
+                currentAngle += step.newAngleOffset;
+        }
+    }
     private void CheckOutOfBounds()
     {
         Vector3 p = transform.position;

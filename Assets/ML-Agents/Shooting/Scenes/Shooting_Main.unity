@@ -153,9 +153,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86b6621158f70414d9d3660e0daf30dc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  myTeam: 0
+  myTeam: 1
   characterProfile: {fileID: 11400000, guid: 07e4137c945f5ef4ba6fdbcdc56b471b, type: 2}
-  bulletPrefab: {fileID: 4103404898756645513, guid: e1eaac958798e914c8560d8563bab59d, type: 3}
+  delayEffectPrefab: {fileID: 7335515540039064855, guid: 20d6de003aed0654685718a8ae94f4f8, type: 3}
+  delaySprites:
+  - {fileID: 1494407525467865721, guid: 2709d969340777942b864b2238ecafb1, type: 3}
+  - {fileID: -5024927183922576304, guid: 2709d969340777942b864b2238ecafb1, type: 3}
+  - {fileID: 7099077274376888169, guid: 2709d969340777942b864b2238ecafb1, type: 3}
+  - {fileID: 8914514243730790440, guid: 2709d969340777942b864b2238ecafb1, type: 3}
+  - {fileID: 3850066337455968739, guid: 2709d969340777942b864b2238ecafb1, type: 3}
+  - {fileID: -827259024503639357, guid: 2709d969340777942b864b2238ecafb1, type: 3}
+  - {fileID: 5090463592325344082, guid: 2709d969340777942b864b2238ecafb1, type: 3}
+  - {fileID: 8884159386191093850, guid: 2709d969340777942b864b2238ecafb1, type: 3}
 --- !u!114 &384195649
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -251,7 +260,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 32
+    VectorObservationSize: 72
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 3
@@ -260,7 +269,7 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 5022602860645237092, guid: 346f564fbdf8b3a47a9d4c4cb0e77d02, type: 3}
+  m_Model: {fileID: 0}
   m_InferenceDevice: 0
   m_BehaviorType: 0
   m_BehaviorName: DodgerAgent
@@ -852,7 +861,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   myTeam: 0
   characterProfile: {fileID: 0}
-  bulletPrefab: {fileID: 4103404898756645513, guid: d293e35b4b528ea4e9040ae31921c474, type: 3}
+  delayEffectPrefab: {fileID: 0}
+  delaySprites:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!1 &1809622910
 GameObject:
   m_ObjectHideFlags: 0
@@ -999,7 +1017,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 32
+    VectorObservationSize: 72
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 3
@@ -1073,7 +1091,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   myTeam: 0
   characterProfile: {fileID: 11400000, guid: 91368c47baf17424aa5c097e83e87a10, type: 2}
-  bulletPrefab: {fileID: 4103404898756645513, guid: e1eaac958798e914c8560d8563bab59d, type: 3}
+  delayEffectPrefab: {fileID: 7335515540039064855, guid: 20d6de003aed0654685718a8ae94f4f8, type: 3}
+  delaySprites:
+  - {fileID: 1494407525467865721, guid: 2709d969340777942b864b2238ecafb1, type: 3}
+  - {fileID: -5024927183922576304, guid: 2709d969340777942b864b2238ecafb1, type: 3}
+  - {fileID: 7099077274376888169, guid: 2709d969340777942b864b2238ecafb1, type: 3}
+  - {fileID: 8914514243730790440, guid: 2709d969340777942b864b2238ecafb1, type: 3}
+  - {fileID: 3850066337455968739, guid: 2709d969340777942b864b2238ecafb1, type: 3}
+  - {fileID: -827259024503639357, guid: 2709d969340777942b864b2238ecafb1, type: 3}
+  - {fileID: 5090463592325344082, guid: 2709d969340777942b864b2238ecafb1, type: 3}
+  - {fileID: 8884159386191093850, guid: 2709d969340777942b864b2238ecafb1, type: 3}
 --- !u!1 &1999594203
 GameObject:
   m_ObjectHideFlags: 0
