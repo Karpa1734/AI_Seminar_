@@ -25,11 +25,13 @@ public class BulletData : ScriptableObject
 {
     public enum SizeCategory { Large, Middle, Small }
     public string bulletName;
-    public Sprite bulletSprite;
+    public Sprite bulletSprite; 
+    public GameObject deathEffectPrefab; // ★ここに対応する色のエフェクトプレハブをアサインする
     public SizeCategory sizeCategory;
 
     [Header("Effect Settings")]
     public DelayColor delayColor;
+    public bool isAdditive; // 加算合成フラグ
 
     [Header("Collision Settings")]
     public float colliderRadius = 0.1f;

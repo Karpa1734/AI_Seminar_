@@ -47,17 +47,17 @@ TagManager:
   - 
   - 
   m_SortingLayers:
-  - name: Front
-    uniqueID: 2713656553
-    locked: 0
-  - name: Middle
-    uniqueID: 274974117
+  - name: Back
+    uniqueID: 2042973677
     locked: 0
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Back
-    uniqueID: 2042973677
+  - name: Middle
+    uniqueID: 274974117
+    locked: 0
+  - name: Front
+    uniqueID: 2713656553
     locked: 0
   m_RenderingLayers:
   - Default

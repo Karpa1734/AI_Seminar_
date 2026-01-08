@@ -14,27 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bulletName: Orb_Yellow
   bulletSprite: {fileID: 490948492260271654, guid: c3dc5fbde08a7a14297607240c003abc, type: 3}
+  deathEffectPrefab: {fileID: 1789245602446957592, guid: b28e8361023fc3e4999b2f3fc8661f3d, type: 3}
   sizeCategory: 0
   delayColor: 2
+  isAdditive: 1
   colliderRadius: 0.3
   colliderOffset: {x: 0, y: 0}
   localScale: {x: 1, y: 1, z: 1}
-  changeSteps:
-  - triggerFrame: 500
-    newSprite: {fileID: 8060257255015784634, guid: c3dc5fbde08a7a14297607240c003abc, type: 3}
-    newColliderRadius: 0.3
-    newScale: {x: 0, y: 0, z: 0}
-    changeTrajectory: 1
-    newSpeed: 5
-    newSpeedAcc: 0
-    newAngleOffset: 90
-    isAbsoluteAngle: 0
-  - triggerFrame: 1000
-    newSprite: {fileID: 3759393764038270992, guid: c3dc5fbde08a7a14297607240c003abc, type: 3}
-    newColliderRadius: 0.3
-    newScale: {x: 0, y: 0, z: 0}
-    changeTrajectory: 1
-    newSpeed: 5
-    newSpeedAcc: 0
-    newAngleOffset: -90
-    isAbsoluteAngle: 0
+  changeSteps: []
