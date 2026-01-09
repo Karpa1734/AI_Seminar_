@@ -36,6 +36,8 @@ public class ShotData
     public int nWayCount = 3;
     public float nWaySpread = 30f;
     public int RoundCount = 36;
+    public int speedCount = 1; // 弾数（速度のレイヤー数）
+    public float speedMax = 8f; // 最大速度（一番外側の弾）
 
     [Header("NWay Expansion")]
     public NWayExpandSettings nWayExpand;

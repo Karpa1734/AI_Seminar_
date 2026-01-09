@@ -79,6 +79,7 @@ public class EnemyBullet : MonoBehaviour
         angleAcc = anAcc;
         maxAngle = anMax;
         hasAngleLimit = (anMax != 0);
+        Debug.Log($"[Bullet Setup] Speed: {this.currentSpeed}, Cap: {this.maxSpeed}");
 
         UpdateVelocityAndRotation();
     }

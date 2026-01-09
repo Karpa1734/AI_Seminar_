@@ -25,6 +25,8 @@ MonoBehaviour:
       nWayCount: 3
       nWaySpread: 40
       RoundCount: 0
+      speedCount: 1
+      speedMax: 8
       nWayExpand:
         countAdd: 1
         spreadAdd: 10
@@ -51,21 +53,23 @@ MonoBehaviour:
       fixedAngle: 0
       nWayCount: 0
       nWaySpread: 0
-      RoundCount: 18
+      RoundCount: 12
+      speedCount: 2
+      speedMax: 6
       nWayExpand:
         countAdd: 0
         spreadAdd: 0
       speedData:
-        default_: 3
-        accuracy_: 0.5
-        max_: 8
+        default_: 5
+        accuracy_: 0
+        max_: 5
       angleAccData:
         default_: 0
         accuracy_: 0
         max_: 0
-      launchDelay: 120
-      spawnRadius: 2
-    recastTime: 1
+      launchDelay: 10
+      spawnRadius: 0.5
+    recastTime: 1.5
     burstCount: 1
     burstInterval: 0
     fireType: 0
@@ -79,6 +83,8 @@ MonoBehaviour:
       nWayCount: 3
       nWaySpread: 30
       RoundCount: 36
+      speedCount: 1
+      speedMax: 8
       nWayExpand:
         countAdd: 0
         spreadAdd: 0
@@ -106,6 +112,8 @@ MonoBehaviour:
       nWayCount: 3
       nWaySpread: 30
       RoundCount: 36
+      speedCount: 1
+      speedMax: 8
       nWayExpand:
         countAdd: 0
         spreadAdd: 0
