@@ -10,10 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b5a8e5f0d65346149b4d2a9094ef3f55, type: 3}
-  m_Name: Fire_Yellow
+  m_Name: Money_Yellow
   m_EditorClassIdentifier: 
   bulletName: Orb_Yellow
-  bulletSprite: {fileID: 490948492260271654, guid: c3dc5fbde08a7a14297607240c003abc, type: 3}
-  colliderRadius: 0.3
+  bulletSprite: {fileID: 2452657247571828589, guid: 7faaf2729d640c2448a01a8ccafbf7e7, type: 3}
+  deathEffectPrefab: {fileID: 1789245602446957592, guid: b28e8361023fc3e4999b2f3fc8661f3d, type: 3}
+  sizeCategory: 2
+  damage: 15
+  delayColor: 2
+  isAdditive: 0
+  colliderRadius: 0.1
   colliderOffset: {x: 0, y: 0}
   localScale: {x: 1, y: 1, z: 1}
+  changeSteps: []

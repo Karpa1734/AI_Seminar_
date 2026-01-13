@@ -16,83 +16,120 @@ MonoBehaviour:
   characterSprite: {fileID: -8385019883287296420, guid: 868d317e2326c4548b5815075561bb50, type: 3}
   normalSpeed: 5
   slowSpeed: 2
+  maxHealth: 100
   shotZ:
     shotData:
-      pattern: 0
+      bulletType: {fileID: 11400000, guid: 72e9a20ab9941414ebf93c18c15dba6f, type: 2}
+      pattern: 1
       angleType: 1
-      interval: 30
       fixedAngle: 270
       nWayCount: 3
-      nWaySpread: 30
+      nWaySpread: 120
       RoundCount: 36
+      speedCount: 1
+      speedMax: 8
+      nWayExpand:
+        countAdd: 0
+        spreadAdd: 0
       speedData:
         default_: 3
         accuracy_: 0.5
         max_: 8
-        bulletType: {fileID: 0}
-      angleData:
+      angleAccData:
         default_: 0
         accuracy_: 0
         max_: 0
-        bulletType: {fileID: 0}
-    recastTime: 0
+      launchDelay: 0
+      spawnRadius: 0
+    recastTime: 3
+    burstCount: 1
+    burstInterval: 0.1
+    fireType: 1
+    firingSpeedMultiplier: 1
   shotX:
     shotData:
+      bulletType: {fileID: 0}
       pattern: 0
       angleType: 1
-      interval: 30
       fixedAngle: 270
       nWayCount: 3
       nWaySpread: 30
       RoundCount: 36
+      speedCount: 1
+      speedMax: 8
+      nWayExpand:
+        countAdd: 0
+        spreadAdd: 0
       speedData:
         default_: 3
         accuracy_: 0.5
         max_: 8
-        bulletType: {fileID: 0}
-      angleData:
+      angleAccData:
         default_: 0
         accuracy_: 0
         max_: 0
-        bulletType: {fileID: 0}
+      launchDelay: 0
+      spawnRadius: 0
     recastTime: 0
+    burstCount: 1
+    burstInterval: 0.1
+    fireType: 0
+    firingSpeedMultiplier: 1
   shotC:
     shotData:
+      bulletType: {fileID: 0}
       pattern: 0
       angleType: 1
-      interval: 30
       fixedAngle: 270
       nWayCount: 3
       nWaySpread: 30
       RoundCount: 36
+      speedCount: 1
+      speedMax: 8
+      nWayExpand:
+        countAdd: 0
+        spreadAdd: 0
       speedData:
         default_: 3
         accuracy_: 0.5
         max_: 8
-        bulletType: {fileID: 0}
-      angleData:
+      angleAccData:
         default_: 0
         accuracy_: 0
         max_: 0
-        bulletType: {fileID: 0}
+      launchDelay: 0
+      spawnRadius: 0
     recastTime: 0
+    burstCount: 1
+    burstInterval: 0.1
+    fireType: 0
+    firingSpeedMultiplier: 1
   shotV:
     shotData:
+      bulletType: {fileID: 0}
       pattern: 0
       angleType: 1
-      interval: 30
       fixedAngle: 270
       nWayCount: 3
       nWaySpread: 30
       RoundCount: 36
+      speedCount: 1
+      speedMax: 8
+      nWayExpand:
+        countAdd: 0
+        spreadAdd: 0
       speedData:
         default_: 3
         accuracy_: 0.5
         max_: 8
-        bulletType: {fileID: 0}
-      angleData:
+      angleAccData:
         default_: 0
         accuracy_: 0
         max_: 0
-        bulletType: {fileID: 0}
+      launchDelay: 0
+      spawnRadius: 0
     recastTime: 0
+    burstCount: 1
+    burstInterval: 0.1
+    fireType: 0
+    firingSpeedMultiplier: 1

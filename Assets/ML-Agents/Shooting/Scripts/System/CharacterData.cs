@@ -8,7 +8,10 @@ public class CharacterData : ScriptableObject
 
     [Header("Movement Stats")]
     public float normalSpeed = 5f;
-    public float slowSpeed = 2f;
+    public float slowSpeed = 2f; 
+    
+    [Header("Status")]
+    public float maxHealth = 100f;
 
     [Header("Attack Patterns")]
     public AttackPattern shotZ;

@@ -53,8 +53,6 @@ public class ShotData
     public float spawnRadius = 0f;
 }
 
-// 連打(Manual)は削除し、Holdのみに整理
-public enum FireType { Hold }
 
 [System.Serializable]
 public class AttackPattern
@@ -67,7 +65,7 @@ public class AttackPattern
     public float burstInterval = 0.1f;
 
     [Header("Input & Speed Settings")]
-    public FireType fireType = FireType.Hold;
+    public FireType fireType = FireType.Instant;
     [Range(0f, 1f)]
     [Tooltip("発射中の移動速度倍率 (1.0で等速、0.5で50%減速、0で停止)")]
     public float firingSpeedMultiplier = 1.0f; // ★追加

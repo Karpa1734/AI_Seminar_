@@ -16,6 +16,7 @@ MonoBehaviour:
   characterSprite: {fileID: -5890890496200405625, guid: 320d1924faf5f4c4f84508a554bc3313, type: 3}
   normalSpeed: 5
   slowSpeed: 2
+  maxHealth: 100
   shotZ:
     shotData:
       bulletType: {fileID: 11400000, guid: 0721abdd69e9a1d4baf73cc7c7b14642, type: 2}
@@ -76,15 +77,15 @@ MonoBehaviour:
     firingSpeedMultiplier: 1
   shotC:
     shotData:
-      bulletType: {fileID: 11400000, guid: c615c863ede116049acab930b0398a40, type: 2}
-      pattern: 0
-      angleType: 1
-      fixedAngle: 270
-      nWayCount: 3
-      nWaySpread: 30
-      RoundCount: 36
-      speedCount: 1
-      speedMax: 8
+      bulletType: {fileID: 11400000, guid: 7b83eb62728d39d46af73015363dd033, type: 2}
+      pattern: 3
+      angleType: 0
+      fixedAngle: 90
+      nWayCount: 1
+      nWaySpread: 0
+      RoundCount: 1
+      speedCount: 0
+      speedMax: 0
       nWayExpand:
         countAdd: 0
         spreadAdd: 0
@@ -98,7 +99,7 @@ MonoBehaviour:
         max_: 0
       launchDelay: 0
       spawnRadius: 0
-    recastTime: 0
+    recastTime: 8
     burstCount: 1
     burstInterval: 0.1
     fireType: 0
@@ -106,7 +107,7 @@ MonoBehaviour:
   shotV:
     shotData:
       bulletType: {fileID: 11400000, guid: c615c863ede116049acab930b0398a40, type: 2}
-      pattern: 0
+      pattern: 3
       angleType: 1
       fixedAngle: 270
       nWayCount: 3
@@ -127,7 +128,7 @@ MonoBehaviour:
         max_: 0
       launchDelay: 0
       spawnRadius: 0
-    recastTime: 0
+    recastTime: 16
     burstCount: 1
     burstInterval: 0.1
     fireType: 0
