@@ -210,15 +210,16 @@ public class DodgerAgent : Agent
 
     public override void OnActionReceived(ActionBuffers actions)
     {
-
-
-        // 1. エピソード終了判定
+        // 1. エピソード終了判定（タイムアップ）
         if (StepCount >= MaxStep - 1 && MaxStep > 0)
         {
             SetReward(clearBonus);
             EndEpisode();
             return;
         }
+
+        // --- 前準備：学習中かどうかのフラグ ---
+        bool isTraining = Academy.Instance.IsCommunicatorOn;
 
         // 2. 状態異常（スタン・無敵）の処理
         bool canMove = true;
@@ -240,10 +241,10 @@ public class DodgerAgent : Agent
             if (visualSprite != null) visualSprite.color = normalColor;
         }
 
-        // 3. 移動・アクションのメイン処理
+        // 3. メインアクション処理
         if (canMove)
         {
-            // --- A. 移動ロジック ---
+            // --- A. 移動ロジック（Continuous Actions） ---
             var CA = actions.ContinuousActions;
             float moveX = Mathf.Clamp(CA[0], -1f, 1f);
             float moveY = Mathf.Clamp(CA[1], -1f, 1f);
@@ -260,46 +261,38 @@ public class DodgerAgent : Agent
                 Mathf.Clamp(transform.localPosition.x, minX, maxX),
                 Mathf.Clamp(transform.localPosition.y, minY, maxY), 0);
 
-            // 1. AIの出力を取得
+            // --- B. 射撃アクションの決定（Discrete Actions） ---
             int actionToExecute = actions.DiscreteActions[0];
 
-            // 2. 学習モード限定の「積極的射撃」思考の注入
-            if (Academy.Instance.IsCommunicatorOn)
+            // 学習中のみの特殊報酬・挙動
+            if (isTraining)
             {
-                // リキャストが完了している（＝撃てる）スキルがあるか確認
+                // ① 積極的射撃思考：リキャスト完了スキルのチェック
                 bool anySkillReady = false;
                 for (int i = 0; i < 4; i++)
                 {
-                    if (spawner.GetRemainingRecastTime(i) <= 0) anySkillReady = true;
+                    if (spawner != null && spawner.GetRemainingRecastTime(i) <= 0) anySkillReady = true;
                 }
 
                 if (actionToExecute > 0)
                 {
-                    // --- スキルを使った場合 ---
+                    // スキル使用時の報酬
                     int skillIdx = actionToExecute - 1;
-                    if (spawner.GetRemainingRecastTime(skillIdx) <= 0)
+                    if (spawner != null && spawner.GetRemainingRecastTime(skillIdx) <= 0)
                     {
-                        // リキャスト完了時に撃ったら、生存報酬(0.002)の5倍のボーナス
-                        // これにより「とりあえず撃つ」ことが正解だと教え込みます
-                        AddReward(0.01f);
+                        AddReward(0.01f); // 撃てる時に撃ったら加点
                     }
                     else
                     {
-                        // リキャスト中なのにボタンを押す（無駄撃ち）には小さな罰
-                        AddReward(-0.001f);
+                        AddReward(-0.001f); // 無駄撃ち（リキャスト中）は減点
                     }
                 }
                 else if (anySkillReady)
                 {
-                    // --- 撃てるのに撃たなかった場合（Action 0） ---
-                    // 「撃てるのにサボっている」として、生存報酬を打ち消すペナルティ
-                    AddReward(-0.003f);
+                    AddReward(-0.003f); // 撃てるのに撃たなかった（サボり）は減点
                 }
-            }
 
-            if (Academy.Instance.IsCommunicatorOn)
-            {
-                // 学習中：ランダム射撃設定がONなら上書きして多様な状況を経験させる
+                // ② ランダム射撃（Random Fire）による上書き
                 if (useRandomFireInTraining)
                 {
                     randomFireTimer -= Time.deltaTime;
@@ -308,60 +301,59 @@ public class DodgerAgent : Agent
                         actionToExecute = Random.Range(0, 5);
                         randomFireTimer = 0.2f;
                     }
-                    else
-                    {
-                        // 0.2秒間は入力を維持し、チャージを可能にする
-                        // actionToExecute は更新せず、前フレームの値を維持することを想定
-                    }
                 }
 
-                // 射撃すること自体への微小報酬（攻撃をためらわないようにする）
+                // 射撃すること自体への微小報酬
                 if (actionToExecute > 0) AddReward(0.0001f);
             }
 
-            // --- C. 命令の実行（★ここを1回だけにする） ---
+            // --- C. 命令の実行（★ UpdateInputState はここ1回だけ！） ---
             if (spawner != null)
             {
                 spawner.UpdateInputState(actionToExecute);
 
-                // 推論中（テスト外）：AIが何を選んでいるか確認
+                // デバッグログ：0以外（スキル選択中）のときだけ表示
                 if (actionToExecute != 0)
                 {
-                    Debug.Log($"AI Decision - Action: {actionToExecute}");
+                    // 推論時でも学習時でも、実際に命令が通っているか確認できる
+                    // Debug.Log($"{gameObject.name} Action: {actionToExecute}");
                 }
             }
 
-            // --- D. 引き絞り（チャージ）報酬ロジック ---
-            for (int i = 0; i < 4; i++)
+            // --- D. 引き絞り（チャージ）＆照準報酬 ---
+            if (spawner != null)
             {
-                if (spawner != null && spawner.IsCharging(i))
+                for (int i = 0; i < 4; i++)
                 {
-                    float progress = spawner.GetFanAngleProgress(i);
-                    float exponentialBonus = Mathf.Pow(progress, 2); // 引き絞るほど価値が上がる
-
-                    if (enemyTransform != null)
+                    if (spawner.IsCharging(i))
                     {
-                        Vector2 toEnemy = (enemyTransform.position - transform.position).normalized;
-                        float angleToEnemy = Mathf.Atan2(toEnemy.y, toEnemy.x) * Mathf.Rad2Deg;
-                        float angleDiff = Mathf.Abs(Mathf.DeltaAngle(transform.eulerAngles.z, angleToEnemy));
+                        float progress = spawner.GetFanAngleProgress(i);
+                        float exponentialBonus = Mathf.Pow(progress, 2);
 
-                        // 敵を射程内に捉えつつチャージしていれば加点
-                        if (angleDiff < 30f)
+                        if (enemyTransform != null)
                         {
-                            AddReward(0.002f * exponentialBonus);
-                        }
-                    }
+                            Vector2 toEnemy = (enemyTransform.position - transform.position).normalized;
+                            float angleToEnemy = Mathf.Atan2(toEnemy.y, toEnemy.x) * Mathf.Rad2Deg;
+                            float angleDiff = Mathf.Abs(Mathf.DeltaAngle(transform.eulerAngles.z, angleToEnemy));
 
-                    // 最大チャージ維持報酬
-                    if (progress >= 1.0f) AddReward(0.01f);
+                            // 敵を射程（30度以内）に捉えつつチャージしていれば加点
+                            if (angleDiff < 30f)
+                            {
+                                AddReward(0.002f * exponentialBonus);
+                            }
+                        }
+
+                        // 最大チャージ維持報酬
+                        if (progress >= 1.0f) AddReward(0.01f);
+                    }
                 }
             }
         }
 
-        // 4. 共通報酬処理
+        // 4. 共通報酬・ペナルティの適用
         ApplyPositionRewards();
         ApplyWallPenalty();
-        AddReward(survivalReward);
+        AddReward(survivalReward); // 生存すること自体の微小報酬
     }
     void ApplyWallPenalty()
     {
