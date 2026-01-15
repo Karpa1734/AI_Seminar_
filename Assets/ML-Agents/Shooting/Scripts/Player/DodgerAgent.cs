@@ -210,6 +210,9 @@ public class DodgerAgent : Agent
 
     public override void OnActionReceived(ActionBuffers actions)
     {
+
+
+        // 1. エピソード終了判定
         if (StepCount >= MaxStep - 1 && MaxStep > 0)
         {
             SetReward(clearBonus);
@@ -217,6 +220,7 @@ public class DodgerAgent : Agent
             return;
         }
 
+        // 2. 状態異常（スタン・無敵）の処理
         bool canMove = true;
         if (stunTimer > 0)
         {
@@ -236,16 +240,17 @@ public class DodgerAgent : Agent
             if (visualSprite != null) visualSprite.color = normalColor;
         }
 
+        // 3. 移動・アクションのメイン処理
         if (canMove)
         {
+            // --- A. 移動ロジック ---
             var CA = actions.ContinuousActions;
             float moveX = Mathf.Clamp(CA[0], -1f, 1f);
             float moveY = Mathf.Clamp(CA[1], -1f, 1f);
             bool isSlowInput = CA.Length >= 3 && CA[2] > 0.5f;
 
             float firingMultiplier = (spawner != null) ? spawner.GetCurrentSpeedMultiplier() : 1f;
-            float speed = isSlowInput ? slowSpeed : normalSpeed;
-            speed *= firingMultiplier;
+            float speed = (isSlowInput ? slowSpeed : normalSpeed) * firingMultiplier;
 
             Vector2 moveInput = new Vector2(moveX, moveY);
             if (moveInput.sqrMagnitude > 1f) moveInput.Normalize();
@@ -255,60 +260,105 @@ public class DodgerAgent : Agent
                 Mathf.Clamp(transform.localPosition.x, minX, maxX),
                 Mathf.Clamp(transform.localPosition.y, minY, maxY), 0);
 
-            if (spawner != null) spawner.UpdateInputState(actions.DiscreteActions[0]);
+            // 1. AIの出力を取得
+            int actionToExecute = actions.DiscreteActions[0];
 
-            int finalShotAction = actions.DiscreteActions[0]; // モデルの出力をデフォルトにする
-
-            // ★ 学習中 且つ ランダム射撃フラグがONの場合の処理
-            if (Academy.Instance.IsCommunicatorOn && useRandomFireInTraining)
+            // 2. 学習モード限定の「積極的射撃」思考の注入
+            if (Academy.Instance.IsCommunicatorOn)
             {
-                // 毎フレーム判定すると連打しすぎるため、短い間隔で入力を切り替える
-                randomFireTimer -= Time.deltaTime;
-                if (randomFireTimer <= 0)
+                // リキャストが完了している（＝撃てる）スキルがあるか確認
+                bool anySkillReady = false;
+                for (int i = 0; i < 4; i++)
                 {
-                    // 0:なし, 1:Z, 2:X, 3:C, 4:V をランダムに選ぶ
-                    // 1~4が出る確率を高めるため、重み付けをしても良い
-                    finalShotAction = Random.Range(0, 5);
-                    randomFireTimer = 0.2f; // 0.2秒ごとに入力を更新
+                    if (spawner.GetRemainingRecastTime(i) <= 0) anySkillReady = true;
                 }
-                else
+
+                if (actionToExecute > 0)
                 {
-                    // タイマー待機中は前回の入力を継続（溜め打ちスキルのため）
-                    // ただし、0.2秒間押し続ける挙動になる
+                    // --- スキルを使った場合 ---
+                    int skillIdx = actionToExecute - 1;
+                    if (spawner.GetRemainingRecastTime(skillIdx) <= 0)
+                    {
+                        // リキャスト完了時に撃ったら、生存報酬(0.002)の5倍のボーナス
+                        // これにより「とりあえず撃つ」ことが正解だと教え込みます
+                        AddReward(0.01f);
+                    }
+                    else
+                    {
+                        // リキャスト中なのにボタンを押す（無駄撃ち）には小さな罰
+                        AddReward(-0.001f);
+                    }
+                }
+                else if (anySkillReady)
+                {
+                    // --- 撃てるのに撃たなかった場合（Action 0） ---
+                    // 「撃てるのにサボっている」として、生存報酬を打ち消すペナルティ
+                    AddReward(-0.003f);
                 }
             }
 
+            if (Academy.Instance.IsCommunicatorOn)
+            {
+                // 学習中：ランダム射撃設定がONなら上書きして多様な状況を経験させる
+                if (useRandomFireInTraining)
+                {
+                    randomFireTimer -= Time.deltaTime;
+                    if (randomFireTimer <= 0)
+                    {
+                        actionToExecute = Random.Range(0, 5);
+                        randomFireTimer = 0.2f;
+                    }
+                    else
+                    {
+                        // 0.2秒間は入力を維持し、チャージを可能にする
+                        // actionToExecute は更新せず、前フレームの値を維持することを想定
+                    }
+                }
+
+                // 射撃すること自体への微小報酬（攻撃をためらわないようにする）
+                if (actionToExecute > 0) AddReward(0.0001f);
+            }
+
+            // --- C. 命令の実行（★ここを1回だけにする） ---
+            if (spawner != null)
+            {
+                spawner.UpdateInputState(actionToExecute);
+
+                // 推論中（テスト外）：AIが何を選んでいるか確認
+                if (actionToExecute != 0)
+                {
+                    Debug.Log($"AI Decision - Action: {actionToExecute}");
+                }
+            }
+
+            // --- D. 引き絞り（チャージ）報酬ロジック ---
             for (int i = 0; i < 4; i++)
             {
-                if (spawner.IsCharging(i))
+                if (spawner != null && spawner.IsCharging(i))
                 {
                     float progress = spawner.GetFanAngleProgress(i);
+                    float exponentialBonus = Mathf.Pow(progress, 2); // 引き絞るほど価値が上がる
 
-                    // ★ 修正：2乗や3乗にすることで、後半になるほど価値が高まるようにする
-                    // 0.5の時は 0.25、1.0の時は 1.0 の報酬になる
-                    float exponentialBonus = Mathf.Pow(progress, 2);
-
-                    Vector2 toEnemy = (enemyTransform.position - transform.position).normalized;
-                    float angleToEnemy = Mathf.Atan2(toEnemy.y, toEnemy.x) * Mathf.Rad2Deg;
-                    float angleDiff = Mathf.Abs(Mathf.DeltaAngle(transform.eulerAngles.z, angleToEnemy));
-
-                    // 敵を捉えながら溜めている場合は加点
-                    if (angleDiff < 30f) // 視界を少し厳しめに（30度）設定
+                    if (enemyTransform != null)
                     {
-                        AddReward(0.002f * exponentialBonus);
+                        Vector2 toEnemy = (enemyTransform.position - transform.position).normalized;
+                        float angleToEnemy = Mathf.Atan2(toEnemy.y, toEnemy.x) * Mathf.Rad2Deg;
+                        float angleDiff = Mathf.Abs(Mathf.DeltaAngle(transform.eulerAngles.z, angleToEnemy));
+
+                        // 敵を射程内に捉えつつチャージしていれば加点
+                        if (angleDiff < 30f)
+                        {
+                            AddReward(0.002f * exponentialBonus);
+                        }
                     }
 
-                    // ★ 新規：最大まで引き絞った瞬間に一度だけ「達成ボーナス」を出す
-                    if (progress >= 1.0f)
-                    {
-                        AddReward(0.01f); // 最大チャージ維持の動機付け
-                    }
+                    // 最大チャージ維持報酬
+                    if (progress >= 1.0f) AddReward(0.01f);
                 }
             }
-
-            // 最終的なアクションをスパナーに渡す
-            if (spawner != null) spawner.UpdateInputState(finalShotAction); //
         }
+
+        // 4. 共通報酬処理
         ApplyPositionRewards();
         ApplyWallPenalty();
         AddReward(survivalReward);
@@ -341,6 +391,13 @@ public class DodgerAgent : Agent
         // キャラクターごとの理想的な範囲を取得
         float minDist = spawner.minOptimalDistance;
         float maxDist = spawner.maxOptimalDistance;
+
+        // 近すぎることへの強い警告
+        if (distance < minDist)
+        {
+            // 生存報酬 (0.002f) を打ち消す程度のペナルティを与える
+            AddReward(-0.01f);
+        }
 
         if (distance >= minDist && distance <= maxDist)
         {
@@ -413,8 +470,22 @@ public class DodgerAgent : Agent
 
                 AddReward(hitPenalty);
 
-                // 相手（弾を当てた側）に小さな報酬
-                if (opponentAgent != null) opponentAgent.AddReward(hitOpponentReward);
+                if (opponentAgent != null)
+                {
+                    // 1. 相手（弾を撃った側）と自分の距離を測る
+                    float dist = Vector2.Distance(transform.position, opponentAgent.transform.position);
+                    float multiplier = 1.0f;
+
+                    // 2. スパナーに設定された「理想の最小距離」より近い場合は報酬を減衰させる
+                    if (dist < opponentAgent.spawner.minOptimalDistance)
+                    {
+                        // 密着するほど 1.0 -> 0.1 へと報酬が下がるように計算
+                        multiplier = Mathf.Lerp(0.1f, 1.0f, dist / opponentAgent.spawner.minOptimalDistance);
+                    }
+
+                    // 距離による倍率をかけて報酬を与える
+                    opponentAgent.AddReward(hitOpponentReward * multiplier);
+                }
 
                 eb.Deactivate();
 

@@ -103,7 +103,7 @@ MonoBehaviour:
         max_: 0
       launchDelay: 0
       spawnRadius: 0
-    recastTime: 8
+    recastTime: 0
     skillIcon: {fileID: 0}
     burstCount: 1
     burstInterval: 0.1
@@ -134,7 +134,7 @@ MonoBehaviour:
         max_: 0
       launchDelay: 0
       spawnRadius: 0
-    recastTime: 16
+    recastTime: 0
     skillIcon: {fileID: 0}
     burstCount: 1
     burstInterval: 0.1

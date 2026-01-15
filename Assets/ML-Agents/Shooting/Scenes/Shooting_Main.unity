@@ -3467,7 +3467,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2d6a93879759bb14f8aa8336e0261afc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  initialTime: 30
+  initialTime: 99
   timerUI: {fileID: 778418280}
   player1: {fileID: 1809622913}
   player2: {fileID: 384195649}
@@ -7319,7 +7319,7 @@ MonoBehaviour:
   maxX: 8.5
   minY: -4.5
   maxY: 4.5
-  useRandomFireInTraining: 1
+  useRandomFireInTraining: 0
   p1Color: {r: 1, g: 0, b: 1, a: 1}
   p2Color: {r: 0, g: 1, b: 1, a: 1}
 --- !u!114 &1809622914
