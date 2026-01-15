@@ -1711,7 +1711,7 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 0
+  MaxStep: 5000
   enemyTransform: {fileID: 1809622912}
   hpSlider: {fileID: 206019758}
   orangeSlider: {fileID: 1786414085}
@@ -7290,7 +7290,7 @@ MonoBehaviour:
   agentParameters:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
-  MaxStep: 0
+  MaxStep: 5000
   enemyTransform: {fileID: 384195654}
   hpSlider: {fileID: 938793151}
   orangeSlider: {fileID: 262938387}

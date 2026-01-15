@@ -332,6 +332,8 @@ public class DodgerAgent : Agent
                 if (currentHealth <= 0)
                 {
                     Respawn();
+                    AddReward(gameOverPenalty); //
+                    EndEpisode(); // これを呼ぶことで Python 側に「失敗した」と通知される
                 }
                 else
                 {
