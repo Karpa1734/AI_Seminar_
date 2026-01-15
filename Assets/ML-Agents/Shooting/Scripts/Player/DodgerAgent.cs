@@ -203,6 +203,9 @@ public class DodgerAgent : Agent
             sensor.AddObservation(Vector2.zero);
             sensor.AddObservation(Vector2.zero);
         }
+
+        // 各スキルのチャージ状況（引き絞り具合）を観測に追加 (+4個)
+        for (int i = 0; i < 4; i++) sensor.AddObservation(spawner.GetFanAngleProgress(i));
     }
 
     public override void OnActionReceived(ActionBuffers actions)
@@ -275,10 +278,94 @@ public class DodgerAgent : Agent
                 }
             }
 
+            for (int i = 0; i < 4; i++)
+            {
+                if (spawner.IsCharging(i))
+                {
+                    float progress = spawner.GetFanAngleProgress(i);
+
+                    // ★ 修正：2乗や3乗にすることで、後半になるほど価値が高まるようにする
+                    // 0.5の時は 0.25、1.0の時は 1.0 の報酬になる
+                    float exponentialBonus = Mathf.Pow(progress, 2);
+
+                    Vector2 toEnemy = (enemyTransform.position - transform.position).normalized;
+                    float angleToEnemy = Mathf.Atan2(toEnemy.y, toEnemy.x) * Mathf.Rad2Deg;
+                    float angleDiff = Mathf.Abs(Mathf.DeltaAngle(transform.eulerAngles.z, angleToEnemy));
+
+                    // 敵を捉えながら溜めている場合は加点
+                    if (angleDiff < 30f) // 視界を少し厳しめに（30度）設定
+                    {
+                        AddReward(0.002f * exponentialBonus);
+                    }
+
+                    // ★ 新規：最大まで引き絞った瞬間に一度だけ「達成ボーナス」を出す
+                    if (progress >= 1.0f)
+                    {
+                        AddReward(0.01f); // 最大チャージ維持の動機付け
+                    }
+                }
+            }
+
             // 最終的なアクションをスパナーに渡す
             if (spawner != null) spawner.UpdateInputState(finalShotAction); //
         }
+        ApplyPositionRewards();
+        ApplyWallPenalty();
         AddReward(survivalReward);
+    }
+    void ApplyWallPenalty()
+    {
+        // 1. 壁からの距離のしきい値（例：1ユニット以内なら「壁際」とみなす）
+        float wallThreshold = 1.0f;
+
+        // 2. 現在の座標が各壁のしきい値内に入っているか判定
+        bool nearLeft = transform.localPosition.x < minX + wallThreshold;
+        bool nearRight = transform.localPosition.x > maxX - wallThreshold;
+        bool nearBottom = transform.localPosition.y < minY + wallThreshold;
+        bool nearTop = transform.localPosition.y > maxY - wallThreshold;
+
+        // 3. いずれかの壁に近い場合に微小なペナルティを課す
+        if (nearLeft || nearRight || nearBottom || nearTop)
+        {
+            // 生存報酬 (0.002f) よりも小さく設定するのがコツです
+            AddReward(-0.001f);
+        }
+    }
+    void ApplyPositionRewards()
+    {
+        if (enemyTransform == null || spawner == null) return;
+
+        // 1. 敵との距離を計算
+        float distance = Vector2.Distance(transform.position, enemyTransform.position);
+
+        // キャラクターごとの理想的な範囲を取得
+        float minDist = spawner.minOptimalDistance;
+        float maxDist = spawner.maxOptimalDistance;
+
+        if (distance >= minDist && distance <= maxDist)
+        {
+            // 理想的な間合いにいる間、少しずつ加点
+            AddReward(0.001f);
+        }
+        else
+        {
+            // 範囲外（近すぎ・遠すぎ）の場合は微小な減点
+            AddReward(-0.0005f);
+        }
+
+        // 2. 画面端に寄っているかチェック（壁際ハメ防止）
+        float edgeThreshold = 1.0f; // 壁から1ユニット以内を「端」とみなす
+        bool isAtEdge =
+            transform.localPosition.x < minX + edgeThreshold ||
+            transform.localPosition.x > maxX - edgeThreshold ||
+            transform.localPosition.y < minY + edgeThreshold ||
+            transform.localPosition.y > maxY - edgeThreshold;
+
+        if (isAtEdge)
+        {
+            // 画面端に滞在することへのペナルティ
+            AddReward(-0.001f);
+        }
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)
@@ -322,18 +409,19 @@ public class DodgerAgent : Agent
             if (eb != null)
             {
                 currentHealth -= eb.DamageValue;
-                UpdateHPUI(false); // ★滑らかに減少
+                UpdateHPUI(false);
 
                 AddReward(hitPenalty);
+
+                // 相手（弾を当てた側）に小さな報酬
                 if (opponentAgent != null) opponentAgent.AddReward(hitOpponentReward);
 
                 eb.Deactivate();
 
                 if (currentHealth <= 0)
                 {
-                    Respawn();
-                    AddReward(gameOverPenalty); //
-                    EndEpisode(); // これを呼ぶことで Python 側に「失敗した」と通知される
+                    // ★仕切り直しロジックに変更
+                    HandleMatchOver();
                 }
                 else
                 {
@@ -342,6 +430,27 @@ public class DodgerAgent : Agent
                 }
             }
         }
+    }
+
+    private void HandleMatchOver()
+    {
+        Debug.Log($"{gameObject.name} が撃破されました。試合をリセットします。");
+
+        // 1. 敗者へのペナルティ
+        AddReward(gameOverPenalty);
+
+        // 2. 勝者（相手）への大きな報酬（トドメを刺したボーナス）
+        if (opponentAgent != null)
+        {
+            // 単なるヒット報酬より大きな値を与えることで、AIが撃破を狙うようになります
+            opponentAgent.AddReward(hitOpponentReward * 5f);
+
+            // ★重要：両方のエピソードを終了させる
+            // これにより、両者で同時に OnEpisodeBegin() が呼ばれ、体力が全快します
+            opponentAgent.EndEpisode();
+        }
+
+        EndEpisode();
     }
 
     private void Respawn()

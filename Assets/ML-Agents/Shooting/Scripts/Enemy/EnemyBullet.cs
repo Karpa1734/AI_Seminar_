@@ -140,9 +140,10 @@ public class EnemyBullet : MonoBehaviour
 
         UpdateVelocityAndRotation();
     }
-
     void Update()
     {
+
+
         framesSinceSpawn++;
 
         if (isPreparing)
@@ -177,9 +178,12 @@ public class EnemyBullet : MonoBehaviour
         // --- 2. 子弾（Sub-Bullet）の生成処理 ---
         if (originData != null && originData.spawnSubBullets && originData.subShotData != null)
         {
+            // フレームカウントではなく、経過時間で判定する
             subSpawnTimer += Time.deltaTime;
-            // 10フレーム(約0.16秒)間隔の場合
-            if (subSpawnTimer >= (originData.spawnIntervalFrames / 60f))
+
+            float intervalSeconds = originData.spawnIntervalFrames / 60f;
+
+            if (subSpawnTimer >= intervalSeconds)
             {
                 subSpawnTimer = 0f;
                 SpawnSubBullet();

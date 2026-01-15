@@ -25,6 +25,10 @@ public class BulletSpawner : MonoBehaviour
     [SerializeField] private FanMeshVisualizer fanVisualizer;
     [SerializeField] private float previewRadius = 5f;
 
+    [Header("AI Distance Settings")]
+    public float minOptimalDistance = 3.0f; // ‚±‚ê‚æ‚è‹ß‚¢‚Æ‹ß‚·‚¬
+    public float maxOptimalDistance = 7.0f; // ‚±‚ê‚æ‚è‰“‚¢‚Æ‰“‚·‚¬
+
     private AttackPattern[] attackPatterns = new AttackPattern[4];
     private float[] recastTimers = new float[4];
     private Transform target;
@@ -130,7 +134,19 @@ public class BulletSpawner : MonoBehaviour
             currentFanAngles[i] = Mathf.MoveTowards(currentFanAngles[i], maxAngle, expandSpeed * Time.deltaTime);
         }
     }
+    // BulletSpawner.cs “à‚É’Ç‰Á
+    public float GetFanAngleProgress(int index)
+    {
+        if (index < 0 || index >= 4 || attackPatterns[index] == null) return 0f;
 
+        float max = attackPatterns[index].shotData.nWaySpread;
+        float min = 10f; // Å¬Šp“x
+
+        // 0.0 (‘SŠJ) ` 1.0 (Å‘å‚Ü‚Åˆø‚«i‚Á‚½ó‘Ô) ‚É³‹K‰»
+        return Mathf.Clamp01((max - currentFanAngles[index]) / (max - min));
+    }
+
+    public bool IsCharging(int index) => isCharging[index];
     public void UpdateInputState(int attackAction)
     {
         for (int i = 0; i < 4; i++)
@@ -284,6 +300,9 @@ public class BulletSpawner : MonoBehaviour
     {
         if (BulletPool.Instance == null) return;
 
+        // ƒtƒŒ[ƒ€”‚ð•b”‚É•ÏŠ·i60fps‘z’èj
+        float delayTime = delayFrames / 60f;
+
         if (delayFrames <= 0)
         {
             ExecuteActualSpawn(bData, spawnPos, angle, sData, aData, overrideSpeed, team);
@@ -308,15 +327,16 @@ public class BulletSpawner : MonoBehaviour
                 }
             }
 
-            StartCoroutine(DelayedSpawnRoutine(bData, spawnPos, angle, sData, aData, delayFrames, overrideSpeed, team));
+            StartCoroutine(DelayedSpawnRoutine(bData, spawnPos, angle, sData, aData, delayTime, overrideSpeed, team));
         }
     }
 
-    private IEnumerator DelayedSpawnRoutine(BulletData bData, Vector3 spawnPos, float angle, spanData sData, spanData aData, int delayFrames, float overrideSpeed, TeamSide team) // šteam‚ð’Ç‰Á
+    private IEnumerator DelayedSpawnRoutine(BulletData bData, Vector3 spawnPos, float angle, spanData sData, spanData aData, float delayTime, float overrideSpeed, TeamSide team)
     {
-        for (int i = 0; i < delayFrames; i++) yield return null;
+        // š yield return null ‚Ìƒ‹[ƒv‚ð‚â‚ßAWaitForSeconds ‚ðŽg‚¤
+        // ‚±‚ê‚É‚æ‚è Time.timeScale (”{‘¬Ý’è) ‚ª³‚µ‚­”½‰f‚³‚ê‚Ü‚·
+        yield return new WaitForSeconds(delayTime);
 
-        // ’x‰„Œã‚É¶¬‚·‚éÛA•ÛŽ‚µ‚Ä‚¢‚½ team ‚ð“n‚·
         ExecuteActualSpawn(bData, spawnPos, angle, sData, aData, overrideSpeed, team);
     }
     private void ExecuteActualSpawn(BulletData bData, Vector3 spawnPos, float angle, spanData sData, spanData aData, float overrideSpeed, TeamSide team) // ˆø”‚É team ‚ð’Ç‰Á

@@ -1695,6 +1695,8 @@ MonoBehaviour:
   expandSpeed: 400
   fanVisualizer: {fileID: 1865043595}
   previewRadius: 5
+  minOptimalDistance: 3
+  maxOptimalDistance: 7
   uiManager: {fileID: 1643219216}
 --- !u!114 &384195649
 MonoBehaviour:
@@ -1796,7 +1798,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 72
+    VectorObservationSize: 76
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 3
@@ -7333,7 +7335,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 72
+    VectorObservationSize: 76
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 3
@@ -7423,6 +7425,8 @@ MonoBehaviour:
   expandSpeed: 400
   fanVisualizer: {fileID: 2258517810473325372}
   previewRadius: 5
+  minOptimalDistance: 3
+  maxOptimalDistance: 7
   uiManager: {fileID: 142108914}
 --- !u!1 &1841575005
 GameObject:
