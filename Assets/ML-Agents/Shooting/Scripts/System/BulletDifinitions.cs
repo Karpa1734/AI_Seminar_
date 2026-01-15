@@ -29,6 +29,7 @@ public class ShotData
     [Header("Visual & Collision")]
     public BulletData bulletType;
 
+
     [Header("Pattern Settings")]
     public PatternType pattern = PatternType.Single;
     public AngleType angleType = AngleType.AimAtPlayer;
@@ -59,14 +60,19 @@ public class AttackPattern
 {
     public ShotData shotData;
     public float recastTime;
-
+    public Sprite skillIcon; // ★追加：スキルのアイコン画像
     [Header("Burst Settings")]
     public int burstCount = 1;
     public float burstInterval = 0.1f;
 
     [Header("Input & Speed Settings")]
     public FireType fireType = FireType.Instant;
+
+    // ★ここを追加：リキャスト終了時に押しっぱなしで再発動するか
+    [Tooltip("trueなら押しっぱなしで連射、falseなら押し直しが必要")]
+    public bool isAutoRepeat = true;
+
     [Range(0f, 1f)]
     [Tooltip("発射中の移動速度倍率 (1.0で等速、0.5で50%減速、0で停止)")]
-    public float firingSpeedMultiplier = 1.0f; // ★追加
+    public float firingSpeedMultiplier = 1.0f;
 }

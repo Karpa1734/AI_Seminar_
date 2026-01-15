@@ -57,6 +57,18 @@ public class DodgerAgent : Agent
     public float minY = -5f;
     public float maxY = 5f;
 
+    [Header("Random Fire Settings")]
+    [SerializeField] private bool useRandomFireInTraining = false; // 学習中にランダム射撃を行うか
+    private float randomFireTimer = 0f;
+
+    private static bool isSideSwapped = false;
+    private static int lastUpdateFrame = -1; // 同じフレーム内での重複判定を防止
+
+    [Header("Team Appearance")]
+    [SerializeField] private Color p1Color = new Color(0.2f, 0.5f, 1f); // 青系
+    [SerializeField] private Color p2Color = new Color(1f, 0.3f, 0.3f); // 赤系
+    private Color normalColor; // 自分のチームの平常色
+
     private BulletSpawner spawner; 
     private float orangeDelayTimer = 0f; // ★追加：現在の待機カウント
 
@@ -79,27 +91,38 @@ public class DodgerAgent : Agent
     public override void OnEpisodeBegin()
     {
         currentHealth = maxHealth;
-        UpdateHPUI(true); // ★即時反映
-
-        // リセット時は両方のバーを即座に満タンにする
-        if (hpSlider != null) hpSlider.value = 1f;
-        if (orangeSlider != null) orangeSlider.value = 1f;
+        UpdateHPUI(true);
 
         if (spawner == null) spawner = GetComponent<BulletSpawner>();
-
-        float offset = 6.0f;
         bool isP1 = (spawner != null && spawner.myTeam == BulletSpawner.TeamSide.Player1);
-        float startX = isP1 ? -offset : offset;
+
+        // ★ チームカラーの決定
+        normalColor = isP1 ? p1Color : p2Color;
+        if (visualSprite != null) visualSprite.color = normalColor;
+
+        // ★ 同期処理：同じフレーム内（エピソード開始時）に一度だけランダム判定を行う
+        if (Time.frameCount != lastUpdateFrame)
+        {
+            isSideSwapped = (Random.value > 0.5f);
+            lastUpdateFrame = Time.frameCount;
+
+            // P1側が代表して弾をクリアする
+            if (BulletPool.Instance != null) BulletPool.Instance.ReturnAllBullets();
+        }
+
+        // ★ シャッフル座標の計算
+        float offset = 6.0f;
+        float startX;
+        if (isP1) startX = isSideSwapped ? offset : -offset;
+        else startX = isSideSwapped ? -offset : offset;
 
         transform.localPosition = new Vector3(startX, 0f, 0f);
         if (rb != null) rb.linearVelocity = Vector2.zero;
 
-        if (visualSprite != null) visualSprite.flipY = !isP1;
+        if (visualSprite != null) visualSprite.flipY = !isP1; //
 
         stunTimer = 0f;
         invincibilityTimer = 0f;
-
-        if (BulletPool.Instance != null) BulletPool.Instance.ReturnAllBullets();
     }
 
     void Update()
@@ -207,7 +230,7 @@ public class DodgerAgent : Agent
         }
         else
         {
-            if (visualSprite != null) visualSprite.color = Color.white;
+            if (visualSprite != null) visualSprite.color = normalColor;
         }
 
         if (canMove)
@@ -230,6 +253,30 @@ public class DodgerAgent : Agent
                 Mathf.Clamp(transform.localPosition.y, minY, maxY), 0);
 
             if (spawner != null) spawner.UpdateInputState(actions.DiscreteActions[0]);
+
+            int finalShotAction = actions.DiscreteActions[0]; // モデルの出力をデフォルトにする
+
+            // ★ 学習中 且つ ランダム射撃フラグがONの場合の処理
+            if (Academy.Instance.IsCommunicatorOn && useRandomFireInTraining)
+            {
+                // 毎フレーム判定すると連打しすぎるため、短い間隔で入力を切り替える
+                randomFireTimer -= Time.deltaTime;
+                if (randomFireTimer <= 0)
+                {
+                    // 0:なし, 1:Z, 2:X, 3:C, 4:V をランダムに選ぶ
+                    // 1~4が出る確率を高めるため、重み付けをしても良い
+                    finalShotAction = Random.Range(0, 5);
+                    randomFireTimer = 0.2f; // 0.2秒ごとに入力を更新
+                }
+                else
+                {
+                    // タイマー待機中は前回の入力を継続（溜め打ちスキルのため）
+                    // ただし、0.2秒間押し続ける挙動になる
+                }
+            }
+
+            // 最終的なアクションをスパナーに渡す
+            if (spawner != null) spawner.UpdateInputState(finalShotAction); //
         }
         AddReward(survivalReward);
     }

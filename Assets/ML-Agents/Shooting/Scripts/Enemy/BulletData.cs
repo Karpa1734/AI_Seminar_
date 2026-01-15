@@ -51,7 +51,8 @@ public class BulletData : ScriptableObject
 
     [Header("Effect Settings")]
     public DelayColor delayColor;
-    public bool isAdditive;
+    public bool isAdditive;// ★ 追加：予兆エフェクトを表示するかどうかのフラグ
+    public bool useLaunchDelayEffect = true;
 
     [Header("Collision Settings")] 
     public ColliderShape colliderShape = ColliderShape.Circle; // デフォルトは円
@@ -66,7 +67,15 @@ public class BulletData : ScriptableObject
     // ★ ここに配置することで、各弾のデータとして保存・設定できるようになります
     public BulletStartupEffect startupEffect = new BulletStartupEffect();
 
+    [Header("Sub-Shot Settings (Spawning from Bullet)")]
+    public bool spawnSubBullets = false;        // この弾から子弾を出すか
+    public ShotData subShotData;                // 出現させる弾幕のデータ
+    public int spawnIntervalFrames = 10;        // 何フレームごとに出現させるか
+    public float bulletLifespan = -1f;          // 弾の寿命（-1なら無制限）
+
     [Header("Phase Changes")]
     [Tooltip("時間経過で変化するステップのリスト（実行順に並べること）")]
     public List<BulletChangeStep> changeSteps = new List<BulletChangeStep>();
+
+
 }

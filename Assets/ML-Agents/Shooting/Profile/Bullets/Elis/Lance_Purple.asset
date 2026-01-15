@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5a8e5f0d65346149b4d2a9094ef3f55, type: 3}
+  m_Name: Lance_Purple
+  m_EditorClassIdentifier: 
+  fireType: 1
+  bulletName: Lance_Purple
+  bulletSprite: {fileID: -247263647, guid: af15ba7155b8f374ab50dc54120c0df8, type: 3}
+  deathEffectPrefab: {fileID: 1789245602446957592, guid: 7476b93536ca65d46bfda9dd5a92ea0a, type: 3}
+  sizeCategory: 0
+  damage: 10
+  delayColor: 6
+  isAdditive: 0
+  useLaunchDelayEffect: 1
+  colliderShape: 1
+  colliderRadius: 0.05
+  capsuleHeight: 2.4
+  colliderOffset: {x: 0, y: 0}
+  localScale: {x: 1, y: 1, z: 1}
+  startupEffect:
+    type: 1
+    startValue: -90
+    endValue: 0
+    durationFrames: 5
+  spawnSubBullets: 0
+  subShotData:
+    bulletType: {fileID: 0}
+    pattern: 0
+    angleType: 1
+    fixedAngle: 270
+    nWayCount: 3
+    nWaySpread: 30
+    RoundCount: 36
+    speedCount: 1
+    speedMax: 8
+    nWayExpand:
+      countAdd: 0
+      spreadAdd: 0
+    speedData:
+      default_: 3
+      accuracy_: 0.5
+      max_: 8
+    angleAccData:
+      default_: 0
+      accuracy_: 0
+      max_: 0
+    launchDelay: 0
+    spawnRadius: 0
+  spawnIntervalFrames: 10
+  bulletLifespan: -1
+  changeSteps: []

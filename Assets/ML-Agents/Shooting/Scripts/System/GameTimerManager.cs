@@ -8,7 +8,7 @@ public class GameTimerManager : MonoBehaviour
     private float currentTime;
 
     [Header("References")]
-    [SerializeField] private TopUITimerDisplay timerUI; // 前に作ったタイマーUI
+    [SerializeField] private TopUITimerDisplay timerUI;
     [SerializeField] private DodgerAgent player1;
     [SerializeField] private DodgerAgent player2;
 
@@ -17,7 +17,6 @@ public class GameTimerManager : MonoBehaviour
         ResetTimer();
     }
 
-    // エピソード開始時（DodgerAgentのOnEpisodeBegin）から呼んでもOK
     public void ResetTimer()
     {
         currentTime = initialTime;
@@ -25,19 +24,37 @@ public class GameTimerManager : MonoBehaviour
 
     void Update()
     {
-        if (currentTime > 0)
+        // ★ IsTraining ではなく Academy.Instance.IsCommunicatorOn を使用
+        bool isTraining = Academy.Instance.IsCommunicatorOn;
+
+        if (isTraining)
         {
-            currentTime -= Time.deltaTime;
-
-            if (timerUI != null)
+            // --- 1. AI学習中の処理：ステップ数に同期 ---
+            // MaxStepを「30秒」として扱い、進捗をUIに反映させる
+            if (player1 != null && player1.MaxStep > 0)
             {
-                // 文字列ではなく、数値をそのまま渡すように変更
-                timerUI.UpdateTimer(currentTime);
+                // 現在のステップ数と最大ステップ数から比率を出す
+                float ratio = 1f - ((float)player1.StepCount / player1.MaxStep);
+                currentTime = ratio * initialTime;
+
+                if (timerUI != null) timerUI.UpdateTimer(currentTime);
+
+                // 学習中は DodgerAgent 内部の MaxStep 到達判定で 
+                // EndEpisode が呼ばれるため、ここでは EndEpisode を呼ばない
             }
-
-            if (currentTime <= 0)
+        }
+        else
+        {
+            // --- 2. 通常プレイ時の処理：実時間に同期 ---
+            if (currentTime > 0)
             {
-                TimeUp();
+                currentTime -= Time.deltaTime;
+                if (timerUI != null) timerUI.UpdateTimer(currentTime);
+
+                if (currentTime <= 0)
+                {
+                    TimeUp();
+                }
             }
         }
     }
@@ -46,7 +63,6 @@ public class GameTimerManager : MonoBehaviour
     {
         currentTime = 0;
 
-        // 文字列 ("0") ではなく、数値 (0) を渡すように修正
         if (timerUI != null)
         {
             timerUI.UpdateTimer(0f);
@@ -58,7 +74,6 @@ public class GameTimerManager : MonoBehaviour
         if (player1 != null) player1.EndEpisode();
         if (player2 != null) player2.EndEpisode();
 
-        // 自身（タイマー）も初期値にリセット
         ResetTimer();
     }
 }

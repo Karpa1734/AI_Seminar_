@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.AppUI.UI;
+using UnityEngine;
 
 public class EnemyBullet : MonoBehaviour
 {
@@ -23,6 +24,10 @@ public class EnemyBullet : MonoBehaviour
     private float maxAngle;
     private bool hasAngleLimit = false;
     private bool shouldRotate = true; // 画像を進行方向に向けるか
+    private int frameCounter = 0;
+    private BulletData currentData;
+    private float lifeTimer = 0f;
+    private int subSpawnFrameCounter = 0;
 
     private SpriteRenderer spriteRenderer;
 
@@ -40,12 +45,15 @@ public class EnemyBullet : MonoBehaviour
     private bool isPreparing = false;
     private int prepFrameCount = 0;
     private Vector3 originalLocalPos;
-
+    private BulletSpawner mySpawner;
+    // メンバ変数に追加
+    private BulletSpawner.TeamSide myTeam;
     // Expose for Agent observation
     public Vector3 Velocity => velocity;
     public Vector3 Acceleration => _calculatedAcceleration;
     // 外部（PlayerHealth）からダメージ量を読み取るためのプロパティ
-    public int DamageValue => (originData != null) ? originData.damage : 1;
+    public int DamageValue => (originData != null) ? originData.damage : 1;// EnemyBullet.cs 内の推奨修正
+    private float subSpawnTimer = 0f;
     void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -54,8 +62,10 @@ public class EnemyBullet : MonoBehaviour
         if (spriteRenderer != null) defaultMaterial = spriteRenderer.material;
     }
 
-    public void Setup(BulletData data, Vector3 pos, float initSpeed, float spAcc, float spMax, float initAngle, float anAcc, float anMax, int orderInLayer)
+    public void Setup(BulletData data, Vector3 pos, float initSpeed, float spAcc, float spMax, float initAngle, float anAcc, float anMax, int orderInLayer, BulletSpawner.TeamSide team, BulletSpawner spawner)
     {
+        this.mySpawner = spawner;
+        this.myTeam = team; // 自分のチームを記憶
         originData = data;
         nextStepIndex = 0;
         framesSinceSpawn = 0; // Delayを含まないカウント開始
@@ -123,6 +133,8 @@ public class EnemyBullet : MonoBehaviour
         angleAcc = anAcc;
         maxAngle = anMax;
         hasAngleLimit = (anMax != 0);
+        subSpawnFrameCounter = 0; // カウンターをリセット
+        lifeTimer = 0f;           // 寿命タイマーをリセット
 
         Debug.Log($"[Bullet Setup] Shape: {data.colliderShape}, Speed: {currentSpeed}, Order: {currentSortingOrder}");
 
@@ -131,33 +143,30 @@ public class EnemyBullet : MonoBehaviour
 
     void Update()
     {
-        // 1. 全体共通のフレーム加算（溜め中も移動中もカウントする）
         framesSinceSpawn++;
 
-        // 2. 出現演出（準備状態）の処理
         if (isPreparing)
         {
             UpdatePreparation();
-
-            // --- ここで従来の「溜め（ディレイ）」演出の処理を行う ---
-            // もしディレイ中のみ色を変える等の処理があればここに記述、または継続
             UpdateDelayVisuals();
-
-            // 準備中はこれ以降の「移動処理」は行わない
             return;
         }
 
-        // 3. 多段変化（Phase Change）のチェック
-        if (originData != null && nextStepIndex < originData.changeSteps.Count)
+        // --- 1. 寿命（Lifespan）の処理 ---
+        if (originData != null && originData.bulletLifespan > 0)
         {
-            if (framesSinceSpawn >= originData.changeSteps[nextStepIndex].triggerFrame)
+            lifeTimer += Time.deltaTime;
+            if (lifeTimer >= originData.bulletLifespan)
             {
-                ApplyNextStep(originData.changeSteps[nextStepIndex]);
-                nextStepIndex++;
+                Deactivate(); // 8秒などで消滅
+                return;
             }
         }
 
-        // 4. 通常の移動処理
+        // 既存の多段変化チェック...
+        if (originData != null && nextStepIndex < originData.changeSteps.Count) { /* ... */ }
+
+        // 移動処理
         currentSpeed += speedAcc * Time.deltaTime;
         if (maxSpeed > 0f && currentSpeed > maxSpeed) currentSpeed = maxSpeed;
         currentAngle += angleAcc * Time.deltaTime;
@@ -165,8 +174,35 @@ public class EnemyBullet : MonoBehaviour
         UpdateVelocityAndRotation();
         transform.position += velocity * Time.deltaTime;
 
+        // --- 2. 子弾（Sub-Bullet）の生成処理 ---
+        if (originData != null && originData.spawnSubBullets && originData.subShotData != null)
+        {
+            subSpawnTimer += Time.deltaTime;
+            // 10フレーム(約0.16秒)間隔の場合
+            if (subSpawnTimer >= (originData.spawnIntervalFrames / 60f))
+            {
+                subSpawnTimer = 0f;
+                SpawnSubBullet();
+            }
+        }
+
         CheckOutOfBounds();
     }
+
+
+    private void SpawnSubBullet()
+    {
+        if (mySpawner == null) return;
+
+        mySpawner.ExecuteShot(
+            originData.subShotData,
+            0,
+            0,
+            this.transform.position,
+            this.myTeam
+        );
+    }
+
     // 従来の溜め演出（色変化など）を維持するためのメソッド（例）
     private void UpdateDelayVisuals()
     {

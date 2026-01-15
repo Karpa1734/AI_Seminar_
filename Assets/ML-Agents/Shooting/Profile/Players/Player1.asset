@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 073b203c75bdd0c49a811dbaad0bcd60, type: 3}
   m_Name: Player1
   m_EditorClassIdentifier: 
-  characterName: Charlotte
+  characterName: Charl
   characterSprite: {fileID: -5890890496200405625, guid: 320d1924faf5f4c4f84508a554bc3313, type: 3}
   normalSpeed: 5
   slowSpeed: 2
@@ -42,9 +42,11 @@ MonoBehaviour:
       launchDelay: 5
       spawnRadius: 0
     recastTime: 2
+    skillIcon: {fileID: 21300000, guid: ac97f36b6d2d8c646907fd29f2085360, type: 3}
     burstCount: 4
     burstInterval: 0.3
     fireType: 0
+    isAutoRepeat: 1
     firingSpeedMultiplier: 0.5
   shotX:
     shotData:
@@ -71,9 +73,11 @@ MonoBehaviour:
       launchDelay: 10
       spawnRadius: 0.5
     recastTime: 1.5
+    skillIcon: {fileID: 21300000, guid: 8db3062216b350c45a0c092149ca2990, type: 3}
     burstCount: 1
     burstInterval: 0
     fireType: 0
+    isAutoRepeat: 1
     firingSpeedMultiplier: 1
   shotC:
     shotData:
@@ -100,9 +104,11 @@ MonoBehaviour:
       launchDelay: 0
       spawnRadius: 0
     recastTime: 8
+    skillIcon: {fileID: 0}
     burstCount: 1
     burstInterval: 0.1
     fireType: 0
+    isAutoRepeat: 1
     firingSpeedMultiplier: 1
   shotV:
     shotData:
@@ -129,7 +135,9 @@ MonoBehaviour:
       launchDelay: 0
       spawnRadius: 0
     recastTime: 16
+    skillIcon: {fileID: 0}
     burstCount: 1
     burstInterval: 0.1
     fireType: 0
+    isAutoRepeat: 1
     firingSpeedMultiplier: 1
