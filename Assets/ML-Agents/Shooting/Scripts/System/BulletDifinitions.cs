@@ -1,78 +1,36 @@
 using UnityEngine;
 
-// --- 予兆エフェクトの色定義 ---
+// --- 予兆エフェクトや弾の色味を識別する定義（ビジュアル用） ---
 public enum DelayColor { RED, ORANGE, YELLOW, GREEN, AQUA, BLUE, PURPLE, WHITE }
-
-[System.Serializable]
-public class spanData
-{
-    public float default_;
-    public float accuracy_;
-    public float max_;
-    public spanData() { }
-    public spanData(float val, float acc, float max) { default_ = val; accuracy_ = acc; max_ = max; }
-}
-
-[System.Serializable]
-public class NWayExpandSettings
-{
-    public int countAdd = 0;
-    public float spreadAdd = 0f;
-}
 
 [System.Serializable]
 public class ShotData
 {
-    public enum PatternType { Single, NWay, AllDirections, None }
-    public enum AngleType { Fixed, AimAtPlayer, Random }
-
-    [Header("Visual & Collision")]
+    [Header("Bullet Material")]
+    [Tooltip("使用する弾のデータ（見た目や当たり判定）")]
     public BulletData bulletType;
 
-
-    [Header("Pattern Settings")]
-    public PatternType pattern = PatternType.Single;
-    public AngleType angleType = AngleType.AimAtPlayer;
-    public float fixedAngle = 270f;
-    public int nWayCount = 3;
-    public float nWaySpread = 30f;
-    public int RoundCount = 36;
-    public int speedCount = 1; // 弾数（速度のレイヤー数）
-    public float speedMax = 8f; // 最大速度（一番外側の弾）
-
-    [Header("NWay Expansion")]
-    public NWayExpandSettings nWayExpand;
-
-    [Header("Movement Settings")]
-    public spanData speedData = new spanData(3f, 0.5f, 8f);
-    public spanData angleAccData = new spanData(0f, 0f, 0f);
-
-    [Header("Delay Settings")]
-    public int launchDelay = 0;
-
-    [Header("Spawn Position Settings")]
-    public float spawnRadius = 0f;
+    // AIが0から構築するため、以前の PatternType や AngleType などの
+    // 複雑な固定設定は不要となりました。
+    // 必要に応じて、AIが参照しない「デフォルト値」をここに残すことも可能です。
 }
-
 
 [System.Serializable]
 public class AttackPattern
 {
+    [Header("Shot Settings")]
     public ShotData shotData;
-    public float recastTime;
-    public Sprite skillIcon; // ★追加：スキルのアイコン画像
-    [Header("Burst Settings")]
-    public int burstCount = 1;
-    public float burstInterval = 0.1f;
 
-    [Header("Input & Speed Settings")]
-    public FireType fireType = FireType.Instant;
-
-    // ★ここを追加：リキャスト終了時に押しっぱなしで再発動するか
-    [Tooltip("trueなら押しっぱなしで連射、falseなら押し直しが必要")]
-    public bool isAutoRepeat = true;
-
+    [Header("Basic Properties")]
+    [Tooltip("発射中の移動速度倍率 (1.0で等速、0.5で50%減速)")]
     [Range(0f, 1f)]
-    [Tooltip("発射中の移動速度倍率 (1.0で等速、0.5で50%減速、0で停止)")]
     public float firingSpeedMultiplier = 1.0f;
+
+    // AI側（BossAgent）でクールタイムを管理するため recastTime は削除可能ですが、
+    // 自機（Player）の連射設定などのために残しておくこともできます。
+    [Tooltip("連射間隔（秒）")]
+    public float recastTime = 0.1f;
+
+    [Header("Visual")]
+    public Sprite skillIcon;
 }

@@ -7,25 +7,33 @@ public class BulletPool : MonoBehaviour
 
     [Header("Pool Settings")]
     public GameObject bulletPrefab;
-    public int initialPoolSize = 500; // 最初に生成しておく数
+    public int initialPoolSize = 500;
 
     private Queue<GameObject> pool = new Queue<GameObject>();
+    // 全ての弾を管理するためのリストを追加
+    private List<GameObject> allBullets = new List<GameObject>();
 
     private void Awake()
     {
         Instance = this;
 
-        // 起動時にあらかじめ弾を生成して非表示にしておく
         for (int i = 0; i < initialPoolSize; i++)
         {
-            GameObject obj = Instantiate(bulletPrefab);
-            obj.transform.SetParent(this.transform);
-            obj.SetActive(false);
-            pool.Enqueue(obj);
+            CreateNewBullet();
         }
     }
 
-    // プールから弾を取得する
+    // 弾を新しく生成してリストとプールに入れる
+    private GameObject CreateNewBullet()
+    {
+        GameObject obj = Instantiate(bulletPrefab);
+        obj.transform.SetParent(this.transform);
+        obj.SetActive(false);
+        pool.Enqueue(obj);
+        allBullets.Add(obj); // 管理リストに追加
+        return obj;
+    }
+
     public GameObject Get()
     {
         if (pool.Count > 0)
@@ -36,25 +44,21 @@ public class BulletPool : MonoBehaviour
         }
         else
         {
-            // プールが空になった場合は新しく生成（保険）
-            GameObject obj = Instantiate(bulletPrefab);
-            obj.transform.SetParent(this.transform);
-            return obj;
+            // 足りなくなった場合もリストに追加して管理する
+            return CreateNewBullet();
         }
     }
 
-    // 使い終わった弾をプールに戻す
     public void ReturnToPool(GameObject obj)
     {
         obj.SetActive(false);
         pool.Enqueue(obj);
     }
 
-    public void ReturnAllBullets()
+    // ★ ML-Agents のリセット時に呼ぶ一括非アクティブ化メソッド
+    public void DeactivateAll()
     {
-        // シーン内のすべての弾を探して戻す
-        var activeBullets = GameObject.FindGameObjectsWithTag("Enemy_Bullet");
-        foreach (var b in activeBullets)
+        foreach (var b in allBullets)
         {
             if (b.activeSelf)
             {

@@ -4,14 +4,15 @@ using Unity.MLAgents;
 public class GameTimerManager : MonoBehaviour
 {
     [Header("Timer Settings")]
-    [SerializeField] private float initialTime = 30f;
+    [SerializeField] private float stageTimeLimit = 30f; // 1つの弾幕フェーズの制限時間
     private float currentTime;
 
     [Header("References")]
     [SerializeField] private TopUITimerDisplay timerUI;
-    [SerializeField] private DodgerAgent player1;
-    [SerializeField] private DodgerAgent player2;
-
+    [SerializeField] private PlayerAgent playerAgent;
+    [SerializeField] private BossAgent bossAgent;
+    // 現在の残り時間の割合 (1.0 ～ 0.0) を返すプロパティ
+    public float CurrentTimeRatio => Mathf.Clamp01(currentTime / stageTimeLimit);
     void Start()
     {
         ResetTimer();
@@ -19,33 +20,29 @@ public class GameTimerManager : MonoBehaviour
 
     public void ResetTimer()
     {
-        currentTime = initialTime;
+        currentTime = stageTimeLimit;
     }
 
     void Update()
     {
-        // ★ IsTraining ではなく Academy.Instance.IsCommunicatorOn を使用
+        // AI学習中かどうかの判定
         bool isTraining = Academy.Instance.IsCommunicatorOn;
 
         if (isTraining)
         {
-            // --- 1. AI学習中の処理：ステップ数に同期 ---
-            // MaxStepを「30秒」として扱い、進捗をUIに反映させる
-            if (player1 != null && player1.MaxStep > 0)
+            // --- 1. 学習中：エージェントのステップ進捗に同期 ---
+            // PlayerAgentのMaxStepをフェーズの時間制限として UI に反映
+            if (playerAgent != null && playerAgent.MaxStep > 0)
             {
-                // 現在のステップ数と最大ステップ数から比率を出す
-                float ratio = 1f - ((float)player1.StepCount / player1.MaxStep);
-                currentTime = ratio * initialTime;
+                float ratio = 1f - ((float)playerAgent.StepCount / playerAgent.MaxStep);
+                currentTime = ratio * stageTimeLimit;
 
                 if (timerUI != null) timerUI.UpdateTimer(currentTime);
-
-                // 学習中は DodgerAgent 内部の MaxStep 到達判定で 
-                // EndEpisode が呼ばれるため、ここでは EndEpisode を呼ばない
             }
         }
         else
         {
-            // --- 2. 通常プレイ時の処理：実時間に同期 ---
+            // --- 2. 通常プレイ：実時間でのカウントダウン ---
             if (currentTime > 0)
             {
                 currentTime -= Time.deltaTime;
@@ -53,26 +50,28 @@ public class GameTimerManager : MonoBehaviour
 
                 if (currentTime <= 0)
                 {
-                    TimeUp();
+                    PhaseTimeUp();
                 }
             }
         }
     }
 
-    private void TimeUp()
+    private void PhaseTimeUp()
     {
         currentTime = 0;
+        if (timerUI != null) timerUI.UpdateTimer(0f);
 
-        if (timerUI != null)
+        Debug.Log("弾幕フェーズ終了！次のフェーズまたはリセットへ移行します。");
+
+        // タイムアップ時は、プレイヤーが生き残ったとしてボーナスを判定する場合が多い
+        if (playerAgent != null)
         {
-            timerUI.UpdateTimer(0f);
+            playerAgent.SetReward(2.0f); // 生存クリアボーナス
+            playerAgent.EndEpisode();
         }
 
-        Debug.Log("タイムアップ！ステップを終了します。");
-
-        // 両方のエージェントに終了を通知（EndEpisode を呼ぶと OnEpisodeBegin が走る）
-        if (player1 != null) player1.EndEpisode();
-        if (player2 != null) player2.EndEpisode();
+        // ボス側もエピソードを終了させてリセット
+        if (bossAgent != null) bossAgent.EndEpisode();
 
         ResetTimer();
     }
