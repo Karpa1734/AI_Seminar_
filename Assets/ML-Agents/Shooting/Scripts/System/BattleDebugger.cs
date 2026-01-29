@@ -22,7 +22,7 @@ public class BattleDebugger : MonoBehaviour
         float skill = GlobalSkillManager.Instance.currentSkillLevel;
 
         string info = "<color=yellow>[EPISODE INFO]</color>\n";
-        info += $"Global Skill: <color=blue>{skill:P0}</color>\n";
+        info += $"Global Skill: <color=red>{skill:P0}</color>\n";
 
         if (boss != null)
         {
