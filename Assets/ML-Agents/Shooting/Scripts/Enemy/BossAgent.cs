@@ -1,4 +1,4 @@
-using System.Linq;
+ï»¿using System.Linq;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
@@ -17,11 +17,11 @@ public class BossAgent : Agent
     public float maxHealth = 1000f;
     private float currentHealth;
 
-    [Header("Energy Settings (ƒXƒ^ƒ~ƒiŠÇ—)")]
+    [Header("Energy Settings (ã‚¹ã‚¿ãƒŸãƒŠç®¡ç†)")]
     public float maxEnergy = 100f;
     private float currentEnergy;
-    public float energyRegenRate = 15f;    // 1•bŠÔ‚Ì‰ñ•œ—Ê
-    public float energyCostPerBullet = 2f; // ’e1”­‚ ‚½‚è‚ÌƒRƒXƒg
+    public float energyRegenRate = 15f;    // 1ç§’é–“ã®å›å¾©é‡
+    public float energyCostPerBullet = 2f; // å¼¾1ç™ºã‚ãŸã‚Šã®ã‚³ã‚¹ãƒˆ
     [SerializeField] private Slider energySlider;
 
     [Header("Movement Settings")]
@@ -54,50 +54,50 @@ public class BossAgent : Agent
         {
             var p = playerTransform.GetComponent<PlayerAgent>();
 
-            // --- ‘‡•]‰¿iPerformance Scorej‚ÌŒvZ ---
-            // A. ¶‘¶ƒXƒRƒA (0.0 ` 0.5)
+            // --- ç·åˆè©•ä¾¡ï¼ˆPerformance Scoreï¼‰ã®è¨ˆç®— ---
+            // A. ç”Ÿå­˜ã‚¹ã‚³ã‚¢ (0.0 ï½ 0.5)
             float survivalScore = p.CurrentHealthRatio * 0.5f;
 
-            // B. UŒ‚ƒXƒRƒA (0.0 ` 0.3)
-            // ƒGƒsƒ\[ƒh’†‚É 50”­ˆÈã“–‚Ä‚Ä‚¢‚ê‚Î–“_‚Æ‚·‚é
+            // B. æ”»æ’ƒã‚¹ã‚³ã‚¢ (0.0 ï½ 0.3)
+            // ã‚¨ãƒ”ã‚½ãƒ¼ãƒ‰ä¸­ã« 50ç™ºä»¥ä¸Šå½“ã¦ã¦ã„ã‚Œã°æº€ç‚¹ã¨ã™ã‚‹
             float offenseScore = Mathf.Clamp01(p.HitsLandedOnBoss / 50f) * 0.3f;
 
-            // C. ‰ñ”ğ/ƒXƒŠƒ‹ƒXƒRƒA (0.0 ` 0.2)
+            // C. å›é¿/ã‚¹ãƒªãƒ«ã‚¹ã‚³ã‚¢ (0.0 ï½ 0.2)
             float evasionScore = p.GetNormalizedRisk() * 0.2f;
 
-            // ‡Z (0.0 ` 1.0)
+            // åˆç®— (0.0 ï½ 1.0)
             float performance = survivalScore + offenseScore + evasionScore;
 
             GlobalSkillManager.Instance.UpdateSkill(performance);
         }
-        // (’†—ª) 2. ƒ{ƒX©g‚ÌƒXƒe[ƒ^ƒXƒŠƒZƒbƒg
+        // (ä¸­ç•¥) 2. ãƒœã‚¹è‡ªèº«ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒªã‚»ãƒƒãƒˆ
         currentEnergy = maxEnergy;
-        // 1. ’e‚Ìƒv[ƒ‹‚ğ‘|œiBulletPool‚É‘SÁ‹ƒƒ\ƒbƒh‚ğì‚é‚Ì‚ª—‘zj
+        // 1. å¼¾ã®ãƒ—ãƒ¼ãƒ«ã‚’æƒé™¤ï¼ˆBulletPoolã«å…¨æ¶ˆå»ãƒ¡ã‚½ãƒƒãƒ‰ã‚’ä½œã‚‹ã®ãŒç†æƒ³ï¼‰
         BulletPool.Instance?.DeactivateAll();
 
-        // 2. ƒ{ƒX©g‚ÌƒXƒe[ƒ^ƒXƒŠƒZƒbƒg
+        // 2. ãƒœã‚¹è‡ªèº«ã®ã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãƒªã‚»ãƒƒãƒˆ
         currentHealth = maxHealth;
         currentEnergy = maxEnergy;
         targetHpRatio = 1f;
         fireCooldown = 0f;
         lastPositionAtCheck = transform.localPosition;
 
-        // 3. ˆÊ’u‚Æ•¨—‚ÌƒŠƒZƒbƒg
+        // 3. ä½ç½®ã¨ç‰©ç†ã®ãƒªã‚»ãƒƒãƒˆ
         transform.localPosition = new Vector3(0, 4f, 0f);
         if (rb != null) rb.linearVelocity = Vector2.zero;
 
-        // 4. UI‚ÌƒŠƒZƒbƒg
+        // 4. UIã®ãƒªã‚»ãƒƒãƒˆ
         if (bossHpSlider != null) bossHpSlider.value = 1f;
         if (energySlider != null) energySlider.value = 1f;
     }
 
     void Update()
     {
-        // UI‚ÌƒXƒ€[ƒY‚ÈXV
+        // UIã®ã‚¹ãƒ ãƒ¼ã‚ºãªæ›´æ–°
         if (bossHpSlider != null)
             bossHpSlider.value = Mathf.Lerp(bossHpSlider.value, targetHpRatio, Time.deltaTime * barSmoothSpeed);
 
-        // ƒGƒlƒ‹ƒM[‚Ì©“®‰ñ•œ
+        // ã‚¨ãƒãƒ«ã‚®ãƒ¼ã®è‡ªå‹•å›å¾©
         currentEnergy = Mathf.Min(currentEnergy + Time.deltaTime * energyRegenRate, maxEnergy);
         if (energySlider != null) energySlider.value = currentEnergy / maxEnergy;
 
@@ -106,9 +106,29 @@ public class BossAgent : Agent
         ClampPosition();
         if (currentEnergy > maxEnergy * 0.5f)
         {
-            AddReward(-0.0001f); // o‚àÏ‚à‚ê‚ÎR‚Æ‚È‚éƒyƒiƒ‹ƒeƒB
+            AddReward(-0.0001f); // å¡µã‚‚ç©ã‚‚ã‚Œã°å±±ã¨ãªã‚‹ãƒšãƒŠãƒ«ãƒ†ã‚£
         }
-        // 0.5•b‚²‚Æ‚ÉˆÚ“®•]‰¿‚Æ“ïˆÕ“x’²®iDDAj‚ğÀs
+
+        if (GlobalSkillManager.Instance != null)
+        {
+            // [Keypad +] ã¾ãŸã¯ [U] ã‚­ãƒ¼ã§ã‚¹ã‚­ãƒ«ã‚’ 5% ä¸Šã’ã‚‹
+            if (Input.GetKeyDown(KeyCode.KeypadPlus) || Input.GetKeyDown(KeyCode.U))
+            {
+                float nextSkill = Mathf.Clamp(GlobalSkillManager.Instance.currentSkillLevel + 5f, 0f, 1f);
+                GlobalSkillManager.Instance.UpdateSkill(nextSkill); //
+                Debug.Log($"Debug: Skill Up -> {nextSkill * 100:F1}%");
+            }
+
+            // [Keypad -] ã¾ãŸã¯ [J] ã‚­ãƒ¼ã§ã‚¹ã‚­ãƒ«ã‚’ 5% ä¸‹ã’ã‚‹
+            if (Input.GetKeyDown(KeyCode.KeypadMinus) || Input.GetKeyDown(KeyCode.J))
+            {
+                float nextSkill = Mathf.Clamp(GlobalSkillManager.Instance.currentSkillLevel - 5f, 0f, 1f);
+                GlobalSkillManager.Instance.UpdateSkill(nextSkill); //
+                Debug.Log($"Debug: Skill Down -> {nextSkill * 100:F1}%");
+            }
+        }
+
+        // 0.5ç§’ã”ã¨ã«ç§»å‹•è©•ä¾¡ã¨é›£æ˜“åº¦èª¿æ•´ï¼ˆDDAï¼‰ã‚’å®Ÿè¡Œ
         checkTimer += Time.deltaTime;
         if (checkTimer >= 0.5f)
         {
@@ -121,53 +141,53 @@ public class BossAgent : Agent
     private void UpdateRunningSkill()
     {
         if (GlobalSkillManager.Instance == null || playerTransform == null) return;
-
         var p = playerTransform.GetComponent<PlayerAgent>();
 
-        // Œ»İ‚ÌuŠÔ“I‚ÈƒpƒtƒH[ƒ}ƒ“ƒX‚ğŒvZ
-        // ¶‘¶(0.5) + UŒ‚(0.3) + ‰ñ”ğ(0.2) ‚Ì”äd‚ğˆÛ
-        float survival = p.CurrentHealthRatio * 0.5f;
-        // ƒŠƒAƒ‹ƒ^ƒCƒ€‚È‚Ì‚ÅuŒ»İ‚Ì–½’†”v‚ğŠú‘Ò’li—á: Œo‰ßŠÔ~2”­j‚ÅŠ„‚é‚È‚Ç‚ÌH•v
-        float offense = Mathf.Clamp01(p.HitsLandedOnBoss / 50f) * 0.3f;
-        float evasion = p.GetNormalizedRisk() * 0.2f;
+        // A. ç”Ÿå­˜ã‚¹ã‚³ã‚¢ï¼š8ç§’é–“è€ãˆã‚Œã°æº€ç‚¹ï¼ˆ0.5ï¼‰
+        float survival = Mathf.Min(p.SurvivalTimeSinceLastHit / 8f, 1f) * 0.5f;
 
+        // B. æ”»æ’ƒã‚¹ã‚³ã‚¢ï¼šã‚ãšã‹ 3ç™º å½“ã¦ã‚‹ã ã‘ã§æº€ç‚¹ï¼ˆ0.3ï¼‰
+        float offense = Mathf.Clamp01(p.HitsLandedOnBoss / 3f) * 0.3f;
+
+        // C. å›é¿ã‚¹ã‚³ã‚¢ï¼šRisk 0.3ï¼ˆä¸­ç¨‹åº¦ã®å¯†åº¦ï¼‰ã§æº€ç‚¹ï¼ˆ0.3ï¼‰
+        float evasion = Mathf.Min(p.GetNormalizedRisk() / 0.3f, 1f) * 0.3f;
+
+        // æœ€å¤§åˆè¨ˆ 1.1 ã«ãªã‚‹ã®ã§ã€0.7ï½0.8 ã«åˆ°é”ã™ã‚‹ã®ãŒéå¸¸ã«ç°¡å˜ã«ãªã‚Šã¾ã™
         float currentPerformance = survival + offense + evasion;
-
-        // ƒ}ƒl[ƒWƒƒ[‚É•ñ
         GlobalSkillManager.Instance.UpdateSkill(currentPerformance);
     }
-    // ŠÏ‘ª (Vector Observation) - Space Size: 13 ‚Éİ’è‚·‚é‚±‚Æ
+    // è¦³æ¸¬ (Vector Observation) - Space Size: 13 ã«è¨­å®šã™ã‚‹ã“ã¨
     public override void CollectObservations(VectorSensor sensor)
     {
-        // 1-2. ©•ª‚ÌÀ•W (³‹K‰»)
+        // 1-2. è‡ªåˆ†ã®åº§æ¨™ (æ­£è¦åŒ–)
         sensor.AddObservation(new Vector2(transform.localPosition.x / maxX, transform.localPosition.y / maxY));
-        // 3-4. ©•ª‚Ì‘¬“x
+        // 3-4. è‡ªåˆ†ã®é€Ÿåº¦
         sensor.AddObservation(rb.linearVelocity / moveSpeed);
-        // 5. ©•ª‚ÌHPŠ„‡i‚Ü‚½‚Íƒ^ƒCƒ}[j
+        // 5. è‡ªåˆ†ã®HPå‰²åˆï¼ˆã¾ãŸã¯ã‚¿ã‚¤ãƒãƒ¼ï¼‰
         sensor.AddObservation(timerManager != null ? timerManager.CurrentTimeRatio : currentHealth / maxHealth);
-        // 6. ©•ª‚ÌƒGƒlƒ‹ƒM[Š„‡
+        // 6. è‡ªåˆ†ã®ã‚¨ãƒãƒ«ã‚®ãƒ¼å‰²åˆ
         sensor.AddObservation(currentEnergy / maxEnergy);
 
         if (playerTransform != null)
         {
             var p = playerTransform.GetComponent<PlayerAgent>();
-            // 7-8. ƒvƒŒƒCƒ„[‚Æ‚Ì‘Š‘ÎÀ•W
+            // 7-8. ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨ã®ç›¸å¯¾åº§æ¨™
             sensor.AddObservation((playerTransform.position - transform.position) / 15f);
-            // 9-10. Šˆ«“x / ƒjƒAƒ~ƒX
+            // 9-10. æ´»æ€§åº¦ / ãƒ‹ã‚¢ãƒŸã‚¹
             sensor.AddObservation(p.MovementActivity);
             sensor.AddObservation(p.GrazeCount / 100f);
-            // 11-12. ¶‘¶ŠÔ / HPŠ„‡
+            // 11-12. ç”Ÿå­˜æ™‚é–“ / HPå‰²åˆ
             sensor.AddObservation(p.SurvivalTimeSinceLastHit / 30f);
             sensor.AddObservation(p.CurrentHealthRatio);
-            // 13. ƒŠƒXƒNi˜_•¶w•Wj
+            // 13. ãƒªã‚¹ã‚¯ï¼ˆè«–æ–‡æŒ‡æ¨™ï¼‰
             sensor.AddObservation(p.GetNormalizedRisk());
 
-            // 15. ƒvƒŒƒCƒ„[‚ÌŒ»İ‚Ì‘Øİ”MiHeatj
+            // 15. ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®ç¾åœ¨ã®æ»åœ¨ç†±ï¼ˆHeatï¼‰
             sensor.AddObservation(playerTransform.GetComponent<PlayerAgent>().CurrentHeat);
         }
         else
         {
-            sensor.AddObservation(new float[7]); // ƒvƒŒƒCƒ„[•sİ‚Ì–„‚ß‡‚í‚¹
+            sensor.AddObservation(new float[7]); // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ä¸åœ¨æ™‚ã®åŸ‹ã‚åˆã‚ã›
         }
     }
 
@@ -176,89 +196,99 @@ public class BossAgent : Agent
         var CA = actions.ContinuousActions;
         var DA = actions.DiscreteActions;
 
-        // --- 1. ˆÚ“®‚ÆÀ•WŒvZ ---
+        // --- 1. ç§»å‹•ã¨åº§æ¨™è¨ˆç®— ---
         rb.linearVelocity = new Vector2(CA[0], CA[1]) * moveSpeed;
         float spawnRadius = (CA[2] + 1f) * 1.5f;
         float spawnAngleOffset = CA[3] * 180f;
         Vector3 spawnPos = transform.position + Quaternion.Euler(0, 0, spawnAngleOffset) * Vector3.right * spawnRadius;
 
-        // --- 2. ƒvƒŒƒCƒ„[‚Ì‹Z—Ê‚ğæ“¾ ---
-        float playerSkill = (GlobalSkillManager.Instance != null) ? GlobalSkillManager.Instance.currentSkillLevel : 0.5f;
+        // --- 2. ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã®æŠ€é‡ã‚’å–å¾—ã—ã€Så­—ã‚«ãƒ¼ãƒ–ã‚’é©ç”¨ ---
+        float rawSkill = (GlobalSkillManager.Instance != null) ? GlobalSkillManager.Instance.currentSkillLevel : 0.5f;
+        float playerSkill;
 
-        // --- 3. ’e–‹ƒpƒ‰ƒ[ƒ^‚ÌŒˆ’è (AI‚ªuŒ`v‚ğl‚¦‚é) ---
-        DebugSpeedMultiplier = Mathf.Lerp(0.7f, 1.3f, playerSkill);
-        float baseSpeed = ((CA[4] + 1f) * 2f + 3f) * DebugSpeedMultiplier;
-        float speedGap = (CA[7] + 1f) * 1.5f;
+        if (rawSkill < 0.3f)
+        {
+            playerSkill = Mathf.Lerp(0f, 0.05f, rawSkill / 0.3f);
+        }
+        else if (rawSkill < 0.7f)
+        {
+            float t = (rawSkill - 0.3f) / 0.4f;
+            // 30%ï½70%ã®é–“ã§ 0.05 ã‹ã‚‰ 0.85 ã¾ã§ä¸Šæ˜‡ã•ã›ã‚‹ï¼ˆ0.95ã ã¨é«˜ã™ããŸãŸã‚æŠ‘åˆ¶ï¼‰
+            playerSkill = Mathf.Lerp(0.05f, 0.85f, Mathf.SmoothStep(0f, 1f, t));
+        }
+        else
+        {
+            // 70% ï½ 100% ã®é–“ã¯ 0.85 ã‹ã‚‰ 1.0 ã¸ç·©ã‚„ã‹ã«
+            playerSkill = Mathf.Lerp(0.85f, 1.0f, (rawSkill - 0.7f) / 0.3f);
+        }
 
-        // š C³ƒ|ƒCƒ“ƒgFAI‚ª’e–‹‚Ìuƒoƒ‰‚¯•ûv‚ğ§Œä‚·‚é (Continuous Actions ‚ğ 12‚Ü‚Åg—p)
-        // CA[8, 9] : ‘¬“x‚ÌU‚ê•(Amp) ‚Æ üŠú(Freq)
-        // CA[10, 11]: Šp“x‚ÌU‚ê•(Amp) ‚Æ üŠú(Freq)
-        float sAmp = (CA.Length > 8) ? (CA[8] + 1f) * 2.0f : 0f;
+        // --- 3. å¼¾å¹•ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®æ±ºå®šï¼ˆé€Ÿåº¦ã®æŠ‘åˆ¶ï¼‰ ---
+        // å€ç‡ã®ä¸Šé™ã‚’ 1.1f -> 1.05f ã«æŠ‘ãˆã€é€Ÿã™ãã‚’é˜²æ­¢
+        DebugSpeedMultiplier = Mathf.Lerp(0.7f, 1.0f, playerSkill);
+        // é€Ÿåº¦ä¿‚æ•°ã‚’ 1.5f ã«ä¸‹ã’ã€ãƒ™ãƒ¼ã‚¹é€Ÿåº¦ã‚’ãƒã‚¤ãƒ«ãƒ‰ã«
+        float baseSpeed = ((CA[4] + 1f) * 1.2f + 1.5f) * DebugSpeedMultiplier;
+        float speedGap = (CA[7] + 1f) * 1.0f; // å±¤ã”ã¨ã®é€Ÿåº¦å·®ã‚‚ 1.5 -> 1.0 ã¸
+
+        // AIã«ã‚ˆã‚‹ã€Œæ­ªã¿ã€ã®æŒ¯å¹…ã‚‚æŠ‘åˆ¶
+        float sAmp = (CA.Length > 8) ? (CA[8] + 1f) * 1.2f : 0f;
         float sFreq = (CA.Length > 10) ? (CA[10] + 1f) * 5.0f : 0.5f;
-        float aAmp = (CA.Length > 9) ? (CA[9] + 1f) * 5.0f : 0f;
+        float aAmp = (CA.Length > 9) ? (CA[9] + 1f) * 4.0f : 0f;
         float aFreq = (CA.Length > 11) ? (CA[11] + 1f) * 5.0f : 0.5f;
 
-        // --- 4. §ŒÀ‚Ì‰ğ‹Öi–§“x‚Ì’´‹­‰»j ---
+        // --- 4. åˆ¶é™ã®èª¿æ•´ï¼ˆå¯†åº¦ã®æŠ‘åˆ¶ï¼‰ ---
         int patternMode = DA[1];
         float spread = (patternMode == 2) ? 360f : (CA[5] + 1f) * 60f;
 
-        // –§“x‚ÌŠî€‚ğ spread/5 ‚Éˆø‚«ã‚° (‘S•ûˆÊÅ‘å72”­)
-        float absMaxWay = spread / 5f;
+        // â˜… å¯†åº¦ã®åŸºæº–ã‚’ spread/5 ã‹ã‚‰ spread/6 ã«æŠ‘ãˆã‚‹ (å…¨æ–¹ä½æœ€å¤§ 60ç™º)
+        float absMaxWay = spread / 12.0f;
         int minWay, maxWay;
         if (patternMode == 2)
         {
-            minWay = Mathf.RoundToInt(Mathf.Lerp(6f, 36f, playerSkill));
+            minWay = Mathf.RoundToInt(Mathf.Lerp(6f, 16f, playerSkill)); // 36 -> 32
             maxWay = Mathf.RoundToInt(Mathf.Lerp(12f, absMaxWay, playerSkill));
         }
         else
         {
-            minWay = Mathf.RoundToInt(Mathf.Lerp(3f, 12f, playerSkill));
+            minWay = Mathf.RoundToInt(Mathf.Lerp(3f, 5f, playerSkill)); // 12 -> 10
             maxWay = Mathf.RoundToInt(Mathf.Lerp(5f, absMaxWay, playerSkill));
         }
         DebugMaxWayLimit = maxWay;
         int wayCount = Mathf.Clamp(DA[2] + minWay, minWay, maxWay);
 
-        // Å‘å 4‘w ƒŒƒCƒ„[‚Ì‰ğ‹Ö
-        int layerCount = 1;
-        if (playerSkill > 0.9f) layerCount = 4;
-        else if (playerSkill > 0.8f) layerCount = 3;
-        else if (playerSkill > 0.6f) layerCount = 2;
+        // â˜… æœ€å¤§ãƒ¬ã‚¤ãƒ¤ãƒ¼æ•°ã‚’ 3å±¤ ã«åˆ¶é™ (4å±¤ã¯å¯†åº¦ãŒé«˜ã™ããŸãŸã‚)
+        int layerCount = (playerSkill > 0.8f) ? 3 : (playerSkill > 0.5f ? 2 : 1);
 
-        // --- 5. ËŒ‚ƒRƒXƒg‚Æ•p“x‚Ì‹ÉŒÀ‰» ---
+        // --- 5. å°„æ’ƒã‚³ã‚¹ãƒˆã¨é »åº¦ï¼ˆã‚¤ãƒ³ã‚¿ãƒ¼ãƒãƒ«è§£æ¶ˆã®æ ¸å¿ƒï¼‰ ---
         float costMultiplier = Mathf.Lerp(3.0f, 0.1f, playerSkill);
         float totalCost = energyCostPerBullet * wayCount * layerCount * costMultiplier;
         float cooldownBias = Mathf.Lerp(3.0f, 0.1f, playerSkill);
 
-        // --- 6. ËŒ‚Às (AI‚É‚æ‚é”Šw“I”z’u) ---
+        // â˜… ä¿®æ­£ï¼šwayCount ã«ã‚ˆã‚‹åŠ ç®—ã‚’å¹³æ–¹æ ¹(Mathf.Sqrt)ã«ã—ã€å¤§é‡ç™ºå°„å¾Œã®ãƒ•ãƒªãƒ¼ã‚ºã‚’é˜²æ­¢
+        float wayCooldownPenalty = Mathf.Sqrt(wayCount) * 0.04f;
+
+        // --- 6. å°„æ’ƒå®Ÿè¡Œ ---
         if (DA[0] == 1 && fireCooldown <= 0 && currentEnergy >= totalCost)
         {
             Vector2 dirToPlayer = (playerTransform.position - spawnPos).normalized;
             float baseAngle = Mathf.Atan2(dirToPlayer.y, dirToPlayer.x) * Mathf.Rad2Deg;
-
             float startAngle = (wayCount > 1) ? baseAngle - (spread / 2f) : baseAngle;
             float step = (wayCount > 1 && spread < 360f) ? spread / (wayCount - 1) : 360f / wayCount;
 
             for (int l = 0; l < layerCount; l++)
             {
                 float layerBaseSpeed = Mathf.Max(2.0f, baseSpeed - (l * speedGap));
-
                 for (int i = 0; i < wayCount; i++)
                 {
-                    // š C³ƒ|ƒCƒ“ƒgFAI‚ª‘I‘ğ‚µ‚½U•‚ÆüŠú‚ÅuŒ`v‚ğì‚é (Œˆ’è˜_“I)
-                    // —×‚è‡‚¤’e(i)‚²‚Æ‚É Sin/Cos ‚ÅŒvZ‚·‚é‚½‚ßAƒ‰ƒ“ƒ_ƒ€‚Å‚Í‚È‚¢‚ª•¡G‚ÈŒ`‚É‚È‚é
                     float speedOffset = Mathf.Sin(i * sFreq + l) * sAmp;
                     float angleOffset = Mathf.Cos(i * aFreq + l) * aAmp;
-
-                    float finalAngle = startAngle + (step * i) + angleOffset;
-                    float finalSpeed = Mathf.Max(2.0f, layerBaseSpeed + speedOffset);
-
-                    spawner.FireRaw(spawnPos, finalSpeed, finalAngle, CA[6] * 30f);
+                    spawner.FireRaw(spawnPos, Mathf.Max(2.0f, layerBaseSpeed + speedOffset), startAngle + (step * i) + angleOffset, CA[6] * 30f);
                 }
             }
 
             float moveReward = (patternMode == 2) ? 2.0f : 0.05f;
-            currentEnergy -= totalCost/5;
-            fireCooldown = minFireInterval * (cooldownBias + wayCount * 0.05f);
+            currentEnergy -= totalCost / 5;
+            // â˜… ã‚¯ãƒ¼ãƒ«ãƒ€ã‚¦ãƒ³ã®è¨ˆç®—å¼ã‚’æ›´æ–°
+            fireCooldown = minFireInterval * (cooldownBias + wayCooldownPenalty);
             AddReward(moveReward);
         }
         ClampPosition();
@@ -266,8 +296,8 @@ public class BossAgent : Agent
     private void EvaluateMovement()
     {
         float dist = Vector3.Distance(transform.localPosition, lastPositionAtCheck);
-        if (dist > 1.5f) AddReward(0.05f);     // Ï‹ÉˆÚ“®ƒ{[ƒiƒX
-        else if (dist < 0.2f) AddReward(-0.02f); // ’â‘Øƒyƒiƒ‹ƒeƒB
+        if (dist > 1.5f) AddReward(0.05f);     // ç©æ¥µç§»å‹•ãƒœãƒ¼ãƒŠã‚¹
+        else if (dist < 0.2f) AddReward(-0.02f); // åœæ»ãƒšãƒŠãƒ«ãƒ†ã‚£
         lastPositionAtCheck = transform.localPosition;
     }
 
@@ -278,32 +308,32 @@ public class BossAgent : Agent
         float risk = p.GetNormalizedRisk();
         float skillLevel = p.MovementActivity;
 
-        // --- ŠÔ‘Ñ‚É‚æ‚Á‚Ä–Úw‚·‚×‚«ƒŠƒXƒNi“ïˆÕ“xj‚ğ•Ï‚¦‚é ---
-        float targetRisk = (timeRatio > 0.8f) ? 0.15f : 0.4f; // ˜”Õ‚Í’á‚­A’†”ÕˆÈ~‚Í‚‚­İ’è
+        // --- æ™‚é–“å¸¯ã«ã‚ˆã£ã¦ç›®æŒ‡ã™ã¹ããƒªã‚¹ã‚¯ï¼ˆé›£æ˜“åº¦ï¼‰ã‚’å¤‰ãˆã‚‹ ---
+        float targetRisk = (timeRatio > 0.8f) ? 0.15f : 0.4f; // åºç›¤ã¯ä½ãã€ä¸­ç›¤ä»¥é™ã¯é«˜ãè¨­å®š
         float riskDiff = Mathf.Abs(risk - targetRisk);
 
-        // 1. ƒŠƒXƒNˆÛ•ñVi˜”Õ‚Í 0.15 •t‹ß‚ğˆÛ‚Å‚«‚ê‚Î‰Á“_j
+        // 1. ãƒªã‚¹ã‚¯ç¶­æŒå ±é…¬ï¼ˆåºç›¤ã¯ 0.15 ä»˜è¿‘ã‚’ç¶­æŒã§ãã‚Œã°åŠ ç‚¹ï¼‰
         if (riskDiff < 0.1f && p.HitCountInPeriod == 0)
         {
             AddReward(0.1f);
         }
 
-        // 2. ˜”Õ‚Ìu‹Z—Ê‘ª’èvƒ{[ƒiƒX
-        // ­‚È‚¢’e”i’áƒŠƒXƒNj‚È‚Ì‚ÉAƒvƒŒƒCƒ„[‚ª‚µ‚Á‚©‚è“®‚¢‚Ä‚¢‚é‹Z—Ê‚ª‚‚¢‚Æ”»’è
+        // 2. åºç›¤ã®ã€ŒæŠ€é‡æ¸¬å®šã€ãƒœãƒ¼ãƒŠã‚¹
+        // å°‘ãªã„å¼¾æ•°ï¼ˆä½ãƒªã‚¹ã‚¯ï¼‰ãªã®ã«ã€ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒã—ã£ã‹ã‚Šå‹•ã„ã¦ã„ã‚‹ï¼æŠ€é‡ãŒé«˜ã„ã¨åˆ¤å®š
         if (timeRatio > 0.8f && risk > 0.1f && skillLevel > 3.0f)
         {
-            AddReward(0.05f); // ‘ª’è¬Œ÷ƒ{[ƒiƒX
+            AddReward(0.05f); // æ¸¬å®šæˆåŠŸãƒœãƒ¼ãƒŠã‚¹
         }
-        // š C³FƒvƒŒƒCƒ„[‚ª”ğ‚¯‚Ä‚¢‚æ‚¤‚ª‚¢‚Ü‚¢‚ªA
-        // ‰æ–Ê“à‚É‚‚¢–§“xiRiskj‚ğì‚Á‚Ä‚¢‚é‚±‚Æ©‘Ì‚ğ•]‰¿‚·‚é
+        // â˜… ä¿®æ­£ï¼šãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒé¿ã‘ã¦ã„ã‚ˆã†ãŒã„ã¾ã„ãŒã€
+        // ç”»é¢å†…ã«é«˜ã„å¯†åº¦ï¼ˆRiskï¼‰ã‚’ä½œã£ã¦ã„ã‚‹ã“ã¨è‡ªä½“ã‚’è©•ä¾¡ã™ã‚‹
         if (risk > 0.3f)
         {
-            AddReward(0.01f * risk); // –§“x‚ª‚‚¢‚Ù‚Çƒ{ƒX‚É‰Á“_
+            AddReward(0.01f * risk); // å¯†åº¦ãŒé«˜ã„ã»ã©ãƒœã‚¹ã«åŠ ç‚¹
         }
-        // 3. ”í’eƒyƒiƒ‹ƒeƒBi˜”Õ‚ÌuE‚µ‚·‚¬v‚ğdß‚É‚·‚éj
+        // 3. è¢«å¼¾ãƒšãƒŠãƒ«ãƒ†ã‚£ï¼ˆåºç›¤ã®ã€Œæ®ºã—ã™ãã€ã‚’é‡ç½ªã«ã™ã‚‹ï¼‰
         if (p.HitCountInPeriod > 0)
         {
-            // ˜”Õ‚Ì”í’e‚ÍAƒ{ƒX‚Ìu‰ÁŒ¸v‚ª‚Å‚«‚Ä‚¢‚È‚¢Ø‹’‚Æ‚µ‚Äƒyƒiƒ‹ƒeƒB‚ğ”{‘
+            // åºç›¤ã®è¢«å¼¾ã¯ã€ãƒœã‚¹ã®ã€ŒåŠ æ¸›ã€ãŒã§ãã¦ã„ãªã„è¨¼æ‹ ã¨ã—ã¦ãƒšãƒŠãƒ«ãƒ†ã‚£ã‚’å€å¢—
             float severity = (timeRatio > 0.8f) ? 2.0f : 1.0f;
             AddReward(-severity * p.HitCountInPeriod);
             p.ResetHitCount();
@@ -319,7 +349,7 @@ public class BossAgent : Agent
 
     private void OnTriggerEnter2D(Collider2D col)
     {
-        if (col.CompareTag("Enemy_Bullet")) // ©‹@‚Ì’e
+        if (col.CompareTag("Enemy_Bullet")) // è‡ªæ©Ÿã®å¼¾
         {
             var eb = col.GetComponent<EnemyBullet>();
             if (eb != null)
@@ -327,7 +357,7 @@ public class BossAgent : Agent
                 if (playerTransform != null)
                 {
                     var p = playerTransform.GetComponent<PlayerAgent>();
-                    p.RegisterHit(); // UŒ‚¬Œ÷‚ğ‹L˜^
+                    p.RegisterHit(); // æ”»æ’ƒæˆåŠŸã‚’è¨˜éŒ²
                     p.AddReward(0.05f);
                 }
                 AddReward(0.01f);
