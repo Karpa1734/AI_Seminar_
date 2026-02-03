@@ -39,6 +39,8 @@ public class BossAgent : Agent
     public float CurrentHealthRatio => currentHealth / maxHealth;
     private float fireCooldown = 0f;
     public float minFireInterval = 0.15f;
+    public int LastChosenTactic { get; private set; }
+    public Vector3 LastRemoteOffset { get; private set; }
     public int DebugMaxWayLimit { get; private set; }
     public float DebugSpeedMultiplier { get; private set; }
     public override void Initialize()
@@ -143,18 +145,32 @@ public class BossAgent : Agent
         if (GlobalSkillManager.Instance == null || playerTransform == null) return;
         var p = playerTransform.GetComponent<PlayerAgent>();
 
-        // A. 生存スコア：8秒間耐えれば満点（0.5）
-        float survival = Mathf.Min(p.SurvivalTimeSinceLastHit / 8f, 1f) * 0.5f;
+        // --- 1. スコア判定のさらなる高速化 ---
+        // 生存：5秒耐えれば満点（0.5）
+        float survival = Mathf.Min(p.SurvivalTimeSinceLastHit / 5f, 1f) * 0.5f;
 
-        // B. 攻撃スコア：わずか 3発 当てるだけで満点（0.3）
-        float offense = Mathf.Clamp01(p.HitsLandedOnBoss / 3f) * 0.3f;
+        // 攻撃：1発当てれば即座に加点（0.3）
+        float offense = Mathf.Clamp01(p.RecentHitsLanded / 1f) * 0.3f;
 
-        // C. 回避スコア：Risk 0.3（中程度の密度）で満点（0.3）
-        float evasion = Mathf.Min(p.GetNormalizedRisk() / 0.3f, 1f) * 0.3f;
+        // 回避：リスク 0.15（わずかな密度）で満点（0.3）
+        float evasion = Mathf.Min(p.GetNormalizedRisk() / 0.15f, 1f) * 0.3f;
 
-        // 最大合計 1.1 になるので、0.7～0.8 に到達するのが非常に簡単になります
-        float currentPerformance = survival + offense + evasion;
-        GlobalSkillManager.Instance.UpdateSkill(currentPerformance);
+        float instantPerformance = survival + offense + evasion;
+
+        // --- 2. 追従速度（Lerp）の強化 ---
+        float currentSkill = GlobalSkillManager.Instance.currentSkillLevel;
+
+        // ★ Lerp係数を 0.35f に引き上げ（以前の 2～3倍の反応速度）
+        // これにより、目標値（instantPerformance）に向かって非常に速く数値が動きます
+        float lerpFactor = 0.35f;
+
+        // 数値を更新
+        float updatedSkill = Mathf.Lerp(currentSkill, instantPerformance, lerpFactor);
+
+        GlobalSkillManager.Instance.UpdateSkill(Mathf.Clamp01(updatedSkill));
+
+        // カウンターのリセット
+        p.ResetRecentHits();
     }
     // 観測 (Vector Observation) - Space Size: 13 に設定すること
     public override void CollectObservations(VectorSensor sensor)
@@ -191,107 +207,60 @@ public class BossAgent : Agent
         }
     }
 
+    // Unityエディタの Behavior Parameters 設定
+    // Discrete Branches: 2 (Branch 0: 射撃[2], Branch 1: パターン選択[4])
+
+    // BossAgent.cs の OnActionReceived 内
+
     public override void OnActionReceived(ActionBuffers actions)
     {
         var CA = actions.ContinuousActions;
         var DA = actions.DiscreteActions;
-
-        // --- 1. 移動と座標計算 ---
+        LastChosenTactic = actions.DiscreteActions[1] % 4; // AIが選んだ技を保存
+        LastRemoteOffset = new Vector3(actions.ContinuousActions[4] * 4f, actions.ContinuousActions[5] * 4f, 0); // 設置位置を保存
+        // 1. 移動 (既存)
         rb.linearVelocity = new Vector2(CA[0], CA[1]) * moveSpeed;
-        float spawnRadius = (CA[2] + 1f) * 1.5f;
-        float spawnAngleOffset = CA[3] * 180f;
-        Vector3 spawnPos = transform.position + Quaternion.Euler(0, 0, spawnAngleOffset) * Vector3.right * spawnRadius;
 
-        // --- 2. プレイヤーの技量を取得し、S字カーブを適用 ---
-        float rawSkill = (GlobalSkillManager.Instance != null) ? GlobalSkillManager.Instance.currentSkillLevel : 0.5f;
-        float playerSkill;
+        // 2. 空間制御
+        Vector3 remoteOffset = new Vector3(CA[4] * 3f, CA[5] * 3f, 0);
 
-        if (rawSkill < 0.3f)
+        // 3. 技量の取得
+        float playerSkill = (GlobalSkillManager.Instance != null) ? GlobalSkillManager.Instance.currentSkillLevel : 0.5f;
+
+        // 4. 射撃判定と動的インターバル
+        if (DA[0] == 1 && fireCooldown <= 0 && currentEnergy >= 10f)
         {
-            playerSkill = Mathf.Lerp(0f, 0.05f, rawSkill / 0.3f);
-        }
-        else if (rawSkill < 0.7f)
-        {
-            float t = (rawSkill - 0.3f) / 0.4f;
-            // 30%～70%の間で 0.05 から 0.85 まで上昇させる（0.95だと高すぎたため抑制）
-            playerSkill = Mathf.Lerp(0.05f, 0.85f, Mathf.SmoothStep(0f, 1f, t));
-        }
-        else
-        {
-            // 70% ～ 100% の間は 0.85 から 1.0 へ緩やかに
-            playerSkill = Mathf.Lerp(0.85f, 1.0f, (rawSkill - 0.7f) / 0.3f);
-        }
+            int chosenTactic = DA[1] % 4;
+            spawner.ExecuteTactic(chosenTactic, transform.position, remoteOffset, playerSkill);
 
-        // --- 3. 弾幕パラメータの決定（速度の抑制） ---
-        // 倍率の上限を 1.1f -> 1.05f に抑え、速すぎを防止
-        DebugSpeedMultiplier = Mathf.Lerp(0.7f, 1.0f, playerSkill);
-        // 速度係数を 1.5f に下げ、ベース速度をマイルドに
-        float baseSpeed = ((CA[4] + 1f) * 1.2f + 1.5f) * DebugSpeedMultiplier;
-        float speedGap = (CA[7] + 1f) * 1.0f; // 層ごとの速度差も 1.5 -> 1.0 へ
+            // --- エネルギーと報酬の計算 ---
+            currentEnergy -= 0.8f * (1.0f + playerSkill * 0.01f);
 
-        // AIによる「歪み」の振幅も抑制
-        float sAmp = (CA.Length > 8) ? (CA[8] + 1f) * 1.2f : 0f;
-        float sFreq = (CA.Length > 10) ? (CA[10] + 1f) * 5.0f : 0.5f;
-        float aAmp = (CA.Length > 9) ? (CA[9] + 1f) * 4.0f : 0f;
-        float aFreq = (CA.Length > 11) ? (CA[11] + 1f) * 5.0f : 0.5f;
+            // ★ 発射間隔（Cooldown）を練度によって短縮
+            // 0%時: 0.25秒間隔 (秒間4発)
+            // 100%時: 0.08秒間隔 (秒間12.5発)
+            fireCooldown = Mathf.Lerp(0.25f, 0.08f, playerSkill);
 
-        // --- 4. 制限の調整（密度の抑制） ---
-        int patternMode = DA[1];
-        float spread = (patternMode == 2) ? 360f : (CA[5] + 1f) * 60f;
-
-        // ★ 密度の基準を spread/5 から spread/6 に抑える (全方位最大 60発)
-        float absMaxWay = spread / 12.0f;
-        int minWay, maxWay;
-        if (patternMode == 2)
-        {
-            minWay = Mathf.RoundToInt(Mathf.Lerp(6f, 16f, playerSkill)); // 36 -> 32
-            maxWay = Mathf.RoundToInt(Mathf.Lerp(12f, absMaxWay, playerSkill));
-        }
-        else
-        {
-            minWay = Mathf.RoundToInt(Mathf.Lerp(3f, 5f, playerSkill)); // 12 -> 10
-            maxWay = Mathf.RoundToInt(Mathf.Lerp(5f, absMaxWay, playerSkill));
-        }
-        DebugMaxWayLimit = maxWay;
-        int wayCount = Mathf.Clamp(DA[2] + minWay, minWay, maxWay);
-
-        // ★ 最大レイヤー数を 3層 に制限 (4層は密度が高すぎたため)
-        int layerCount = (playerSkill > 0.8f) ? 3 : (playerSkill > 0.5f ? 2 : 1);
-
-        // --- 5. 射撃コストと頻度（インターバル解消の核心） ---
-        float costMultiplier = Mathf.Lerp(3.0f, 0.1f, playerSkill);
-        float totalCost = energyCostPerBullet * wayCount * layerCount * costMultiplier;
-        float cooldownBias = Mathf.Lerp(3.0f, 0.1f, playerSkill);
-
-        // ★ 修正：wayCount による加算を平方根(Mathf.Sqrt)にし、大量発射後のフリーズを防止
-        float wayCooldownPenalty = Mathf.Sqrt(wayCount) * 0.04f;
-
-        // --- 6. 射撃実行 ---
-        if (DA[0] == 1 && fireCooldown <= 0 && currentEnergy >= totalCost)
-        {
-            Vector2 dirToPlayer = (playerTransform.position - spawnPos).normalized;
-            float baseAngle = Mathf.Atan2(dirToPlayer.y, dirToPlayer.x) * Mathf.Rad2Deg;
-            float startAngle = (wayCount > 1) ? baseAngle - (spread / 2f) : baseAngle;
-            float step = (wayCount > 1 && spread < 360f) ? spread / (wayCount - 1) : 360f / wayCount;
-
-            for (int l = 0; l < layerCount; l++)
-            {
-                float layerBaseSpeed = Mathf.Max(2.0f, baseSpeed - (l * speedGap));
-                for (int i = 0; i < wayCount; i++)
-                {
-                    float speedOffset = Mathf.Sin(i * sFreq + l) * sAmp;
-                    float angleOffset = Mathf.Cos(i * aFreq + l) * aAmp;
-                    spawner.FireRaw(spawnPos, Mathf.Max(2.0f, layerBaseSpeed + speedOffset), startAngle + (step * i) + angleOffset, CA[6] * 30f);
-                }
-            }
-
-            float moveReward = (patternMode == 2) ? 2.0f : 0.05f;
-            currentEnergy -= totalCost / 5;
-            // ★ クールダウンの計算式を更新
-            fireCooldown = minFireInterval * (cooldownBias + wayCooldownPenalty);
-            AddReward(moveReward);
+            AddReward(0.02f * (1.0f + playerSkill));
         }
         ClampPosition();
+    }
+    private void EvaluateStrategy(int tacticIndex)
+    {
+        var p = playerTransform.GetComponent<PlayerAgent>();
+
+        // 例：プレイヤーが端にいるときに「端からの奇襲(Tactic 2)」を選んだら加点
+        if (tacticIndex == 2 && Mathf.Abs(playerTransform.position.x) > 3.0f)
+        {
+            AddReward(0.2f); // 状況適合ボーナス
+        }
+
+        // 例：プレイヤーが「滞在熱(Heat)」が高い（一箇所に留まっている）ときに
+        // 「高速中心弾(Tactic 3)」で動かそうとしたら加点
+        if (tacticIndex == 3 && p.CurrentHeat > 0.7f)
+        {
+            AddReward(0.15f);
+        }
     }
     private void EvaluateMovement()
     {

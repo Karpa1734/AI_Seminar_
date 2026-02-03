@@ -56,6 +56,7 @@ public class PlayerAgent : Agent
     private int shootFrameCounter = 0;
     public int HitsLandedOnBoss { get; private set; } // 敵に当てた弾数
     public void ResetHitCount() { hitCountInPeriod = 0; }
+    public int RecentHitsLanded { get; private set; }
     public override void Initialize()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -180,10 +181,6 @@ public class PlayerAgent : Agent
         // Playerの合計 Space Size: 5
     }
     // BossAgent 側からこのメソッドを呼んでカウントを増やす
-    public void RegisterHit()
-    {
-        HitsLandedOnBoss++;
-    }
     public override void OnActionReceived(ActionBuffers actions)
     {
         var CA = actions.ContinuousActions;
@@ -308,7 +305,18 @@ public class PlayerAgent : Agent
         // ★ 左シフトキーで低速移動
         DA[1] = Input.GetKey(KeyCode.LeftShift) ? 1 : 0;
     }
+    public void RegisterHit()
+    {
+        RecentHitsLanded++;
+        // (既存の合計ヒット数カウントなどの処理)
+        HitsLandedOnBoss++;
+    }
 
+    // 評価が終わった後に BossAgent から呼び出してリセットする
+    public void ResetRecentHits()
+    {
+        RecentHitsLanded = 0;
+    }
     public void RegisterGraze()
     {
         grazeCount++;

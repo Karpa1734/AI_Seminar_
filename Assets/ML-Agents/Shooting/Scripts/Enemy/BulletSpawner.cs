@@ -7,7 +7,11 @@ public class BulletSpawner : MonoBehaviour
     public TeamSide myTeam;
     public CharacterData characterProfile;
     private Transform target;
-
+    // ★ 技ごとの弾データをインスペクターで設定できるようにする
+    [Header("Tactics Bullet Presets")]
+    public BulletData[] tacticBulletData; // 要素数を4に設定してください
+    // パターンの種類を定義
+    public enum BulletPattern { Circle, Flower, Spiral, AimedNWay }
     private void Start()
     {
         gameObject.layer = LayerMask.NameToLayer(myTeam.ToString());
@@ -52,7 +56,118 @@ public class BulletSpawner : MonoBehaviour
             SpawnFromPool(bData, spawnPos, finalAngle, speed, angularVelocity, myTeam);
         }
     }
+    // ★ プリセット弾幕の発射ロジック
+    public void FirePreset(BulletPattern pattern, Vector3 spawnPos, float playerSkill, float spinningOffset)
+    {
+        if (characterProfile == null || characterProfile.mainPattern == null) return;
+        BulletData bData = characterProfile.mainPattern.shotData.bulletType;
 
+        switch (pattern)
+        {
+            case BulletPattern.Circle:
+                // 【円形弾】 密度重視の全方位
+                int cCount = Mathf.RoundToInt(Mathf.Lerp(12f, 32f, playerSkill));
+                float cStep = 360f / cCount;
+                for (int i = 0; i < cCount; i++)
+                {
+                    SpawnFromPool(bData, spawnPos, i * cStep + spinningOffset, 3.5f, 0, myTeam);
+                }
+                break;
+
+            case BulletPattern.Flower:
+                // 【花形弾】 数学的な「揺らぎ」を持つ美しい弾幕
+                int fCount = Mathf.RoundToInt(Mathf.Lerp(24f, 48f, playerSkill));
+                float fStep = 360f / fCount;
+                float petals = 5f; // 花びらの数
+                for (int i = 0; i < fCount; i++)
+                {
+                    // Sin波を使って速度に差を出し、花びらの形を作る
+                    float speed = 2.5f + Mathf.Abs(Mathf.Sin(i * fStep * petals * Mathf.Deg2Rad)) * 2.0f;
+                    SpawnFromPool(bData, spawnPos, i * fStep + spinningOffset, speed, 0, myTeam);
+                }
+                break;
+
+            case BulletPattern.Spiral:
+                // 【螺旋弾】 渦を巻くように追い詰める
+                int arms = (playerSkill > 0.6f) ? 3 : 2; // 技量が高いと3条の螺旋に
+                for (int a = 0; a < arms; a++)
+                {
+                    float angle = (360f / arms) * a + spinningOffset;
+                    // 角速度(angularVelocity)を付与して曲げる
+                    SpawnFromPool(bData, spawnPos, angle, 4.0f, 15f, myTeam);
+                }
+                break;
+
+            case BulletPattern.AimedNWay:
+                // 【狙い撃ちN-way】 プレイヤーの現在位置を狙う
+                float aimAngle = CalculateAngleToPlayer();
+                int nWay = Mathf.RoundToInt(Mathf.Lerp(3f, 7f, playerSkill));
+                float spread = 30f + (playerSkill * 20f);
+                FireMultiRaw(spawnPos, 5.0f, aimAngle, 0, nWay, spread);
+                break;
+        }
+    }
+    // BulletSpawner.cs の ExecuteTactic メソッド内
+
+    // BulletSpawner.cs の ExecuteTactic メソッドを更新
+
+    public void ExecuteTactic(int tacticIndex, Vector3 bossPos, Vector3 remoteOffset, float playerSkill)
+    {
+        if (characterProfile == null || tacticBulletData == null || tacticBulletData.Length <= tacticIndex) return;
+
+        // ★ タクティクスに応じた弾データを選択
+        BulletData bData = tacticBulletData[tacticIndex];
+
+        float baseAngle = Random.Range(0f, 360f);
+        float wayMultiplier = 1.0f + playerSkill * 2.5f;
+        float speedMultiplier = 1.0f + playerSkill * 0.5f;
+
+        switch (tacticIndex)
+        {
+            case 0: // 【周辺】bData を使用して発射
+                int way0 = Mathf.RoundToInt(8 * wayMultiplier);
+                Vector3 remoteCenter22 = bossPos + remoteOffset;
+                for (int i = 0; i < way0; i++)
+                {
+                    float angle = i * (360f / way0) + baseAngle;
+                    Vector3 offset = Quaternion.Euler(0, 0, angle) * Vector3.right * 1.8f;
+                    SpawnFromPool(bData, remoteCenter22, angle, 3.0f * speedMultiplier, 0, myTeam);
+                }
+                break;
+
+            case 1: // 【リモート】bData を使用して発射
+                int way1 = Mathf.RoundToInt(6 * (wayMultiplier/2));
+                Vector3 remoteCenter = bossPos + remoteOffset;
+                for (int i = 0; i < way1; i++)
+                {
+                    float angle = i * (360f / way1) + baseAngle;
+                    SpawnFromPool(bData, remoteCenter, angle, 2.8f * speedMultiplier, 0, myTeam);
+                    SpawnFromPool(bData, remoteCenter, angle, 2.0f * speedMultiplier, 0, myTeam);
+                }
+                break;
+
+            case 2: // 【画面端】bData を使用して発射
+                int way2 = Mathf.RoundToInt(9 * wayMultiplier);
+                float xPos = (Random.value > 0.5f) ? -4.5f : 4.5f;
+                Vector3 edgePos = new Vector3(xPos, 4.5f, 0);
+                for (int i = 0; i < way2; i++)
+                {
+                    float angle = i * (360f / way2) + baseAngle;
+                    SpawnFromPool(bData, edgePos, angle, 4.5f * speedMultiplier, 0, myTeam);
+                }
+                break;
+
+            case 3: // 【高速中心】bData を使用して発射
+                int way3 = Mathf.RoundToInt(6 * wayMultiplier);
+                for (int i = 0; i < way3; i++)
+                {
+                    float angle = (i * (360f / way3) + baseAngle) % 360f;
+                    if (angle > 250f && angle < 290f) continue;
+                    SpawnFromPool(bData, bossPos, angle, 6.5f * speedMultiplier, 0, myTeam);
+                }
+                break;
+        }
+    }
     private float CalculateAngleToPlayer()
     {
         if (target != null)

@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5a8e5f0d65346149b4d2a9094ef3f55, type: 3}
+  m_Name: Small_Purple 3
+  m_EditorClassIdentifier: 
+  fireType: 0
+  bulletName: Small_Purple
+  bulletSprite: {fileID: 796117645, guid: 7e06bc7da1a728e4aa63fc211d3c5176, type: 3}
+  deathEffectPrefab: {fileID: 1789245602446957592, guid: 7476b93536ca65d46bfda9dd5a92ea0a, type: 3}
+  sizeCategory: 2
+  damage: 5
+  delayColor: 6
+  isAdditive: 0
+  useLaunchDelayEffect: 1
+  colliderShape: 0
+  colliderRadius: 0.1
+  capsuleHeight: 1
+  colliderOffset: {x: 0, y: 0}
+  localScale: {x: 1, y: 1, z: 1}
+  startupEffect:
+    type: 0
+    startValue: -90
+    endValue: 0
+    durationFrames: 0
+  spawnSubBullets: 0
+  subShotData:
+    bulletType: {fileID: 0}
+    pattern: 0
+    angleType: 0
+    fixedAngle: 0
+    nWayCount: 0
+    nWaySpread: 0
+    RoundCount: 0
+    speedCount: 1
+    speedMax: 8
+    nWayExpand:
+      countAdd: 0
+      spreadAdd: 0
+    speedData:
+      default_: 0
+      accuracy_: 0
+      max_: 0
+    angleAccData:
+      default_: 0
+      accuracy_: 0
+      max_: 0
+    launchDelay: 10
+    spawnRadius: 0
+  spawnIntervalFrames: 0
+  bulletLifespan: 8
+  changeSteps: []

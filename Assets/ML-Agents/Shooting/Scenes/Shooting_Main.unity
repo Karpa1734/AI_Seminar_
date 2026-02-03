@@ -663,6 +663,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   myTeam: 1
   characterProfile: {fileID: 11400000, guid: 07e4137c945f5ef4ba6fdbcdc56b471b, type: 2}
+  tacticBulletData:
+  - {fileID: 11400000, guid: 71a1dd69aead20a4bb07c889b8212b4f, type: 2}
+  - {fileID: 11400000, guid: bfafff4e93953ed40b996cd126225519, type: 2}
+  - {fileID: 11400000, guid: 809e8d2e8ad19554f8fab8e702b95be0, type: 2}
+  - {fileID: 11400000, guid: bfafff4e93953ed40b996cd126225519, type: 2}
 --- !u!50 &384195651
 Rigidbody2D:
   serializedVersion: 5
@@ -712,7 +717,7 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 5022602860645237092, guid: 3fc3bcac7def7f144ba4d98ee7024615, type: 3}
+  m_Model: {fileID: 5022602860645237092, guid: dbc44eb4875b06046b68f9d001f07570, type: 3}
   m_InferenceDevice: 0
   m_BehaviorType: 2
   m_BehaviorName: BossBehavior
@@ -3151,6 +3156,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   myTeam: 0
   characterProfile: {fileID: 11400000, guid: 91368c47baf17424aa5c097e83e87a10, type: 2}
+  tacticBulletData: []
 --- !u!114 &1809622918
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3173,7 +3179,7 @@ MonoBehaviour:
   minX: -4.5
   maxX: 4.5
   minY: -4.5
-  maxY: -1
+  maxY: 4.5
   hpSlider: {fileID: 938793151}
   bossTransform: {fileID: 384195654}
   riskDetectionRadius: 2
@@ -3349,6 +3355,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2008139073}
   - component: {fileID: 2008139072}
+  - component: {fileID: 2008139074}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -3385,6 +3392,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2008139074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2008139071}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d72eb87106baa9d429bab6d05454f629, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  boss: {fileID: 384195655}
+  player: {fileID: 1809622918}
 --- !u!1 &2053860702
 GameObject:
   m_ObjectHideFlags: 0
