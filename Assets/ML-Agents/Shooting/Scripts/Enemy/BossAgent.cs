@@ -145,26 +145,27 @@ public class BossAgent : Agent
         if (GlobalSkillManager.Instance == null || playerTransform == null) return;
         var p = playerTransform.GetComponent<PlayerAgent>();
 
-        // --- 1. スコア判定のさらなる高速化 ---
-        // 生存：5秒耐えれば満点（0.5）
-        float survival = Mathf.Min(p.SurvivalTimeSinceLastHit / 5f, 1f) * 0.5f;
+        // --- 1. 評価基準の厳格化 ---
 
-        // 攻撃：1発当てれば即座に加点（0.3）
-        float offense = Mathf.Clamp01(p.RecentHitsLanded / 1f) * 0.3f;
+        // A. 生存評価 (0.0 ～ 0.4): 20秒耐えてようやく満点（以前は5秒）
+        // これにより、頻繁に被弾する初心者はここが常に低い値（0.1～0.2）に留まります
+        float survival = Mathf.Min(p.SurvivalTimeSinceLastHit / 20f, 1f) * 0.4f;
 
-        // 回避：リスク 0.15（わずかな密度）で満点（0.3）
-        float evasion = Mathf.Min(p.GetNormalizedRisk() / 0.15f, 1f) * 0.3f;
+        // B. 攻撃評価 (0.0 ～ 0.3): 0.5秒間に 5発 以上当てて満点（以前は1発）
+        // 適当に撃っているだけでは満点が取れず、正確なエイムを要求します
+        float offense = Mathf.Clamp01(p.RecentHitsLanded / 5f) * 0.3f;
 
+        // C. 回避評価 (0.0 ～ 0.3): リスク 0.4（高密度）で満点（以前は0.15）
+        // 弾幕の薄い安全圏にいる初心者は、ここが 0 に近くなります
+        float evasion = Mathf.Min(p.GetNormalizedRisk() / 0.4f, 1f) * 0.3f;
+
+        // 理論上の最大値は 1.0。初心者は 0.2 ～ 0.3 程度に収束する設計です。
         float instantPerformance = survival + offense + evasion;
 
-        // --- 2. 追従速度（Lerp）の強化 ---
+        // --- 2. 追従速度の維持 ---
         float currentSkill = GlobalSkillManager.Instance.currentSkillLevel;
-
-        // ★ Lerp係数を 0.35f に引き上げ（以前の 2～3倍の反応速度）
-        // これにより、目標値（instantPerformance）に向かって非常に速く数値が動きます
         float lerpFactor = 0.35f;
 
-        // 数値を更新
         float updatedSkill = Mathf.Lerp(currentSkill, instantPerformance, lerpFactor);
 
         GlobalSkillManager.Instance.UpdateSkill(Mathf.Clamp01(updatedSkill));

@@ -665,7 +665,7 @@ MonoBehaviour:
   characterProfile: {fileID: 11400000, guid: 07e4137c945f5ef4ba6fdbcdc56b471b, type: 2}
   tacticBulletData:
   - {fileID: 11400000, guid: 71a1dd69aead20a4bb07c889b8212b4f, type: 2}
-  - {fileID: 11400000, guid: bfafff4e93953ed40b996cd126225519, type: 2}
+  - {fileID: 11400000, guid: 286235dffc207ea458c92542b1385f75, type: 2}
   - {fileID: 11400000, guid: 809e8d2e8ad19554f8fab8e702b95be0, type: 2}
   - {fileID: 11400000, guid: bfafff4e93953ed40b996cd126225519, type: 2}
 --- !u!50 &384195651
