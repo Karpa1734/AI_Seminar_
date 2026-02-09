@@ -153,11 +153,11 @@ public class BossAgent : Agent
 
         // B. 攻撃評価 (0.0 ～ 0.3): 0.5秒間に 5発 以上当てて満点（以前は1発）
         // 適当に撃っているだけでは満点が取れず、正確なエイムを要求します
-        float offense = Mathf.Clamp01(p.RecentHitsLanded / 5f) * 0.3f;
+        float offense = Mathf.Clamp01(p.RecentHitsLanded / 5f) * 0.4f;
 
         // C. 回避評価 (0.0 ～ 0.3): リスク 0.4（高密度）で満点（以前は0.15）
         // 弾幕の薄い安全圏にいる初心者は、ここが 0 に近くなります
-        float evasion = Mathf.Min(p.GetNormalizedRisk() / 0.4f, 1f) * 0.3f;
+        float evasion = Mathf.Min(p.GetNormalizedRisk() / 0.4f, 1f) * 0.2f;
 
         // 理論上の最大値は 1.0。初心者は 0.2 ～ 0.3 程度に収束する設計です。
         float instantPerformance = survival + offense + evasion;
